@@ -48,8 +48,6 @@ as root
     
 ### install and configure thin
 
-TBD - once I figure it out
-
     SITE_PATH=<absolute path to site>
     PORT_BASE=<lowest port number the thin daemons will use>
     SERVERS=<number of server daemons to spin up>
@@ -72,3 +70,7 @@ thin config file:
     servers: $SERVERS
     daemonize: true
 
+### create .monitrc file to manage thin server
+
+    TBD - Steal this from Mike Clark's recipies book
+    

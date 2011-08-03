@@ -1,13 +1,13 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    autotest-growl (0.2.9)
     capistrano (2.6.0)
       highline
       net-scp (>= 1.0.0)
       net-sftp (>= 2.0.0)
       net-ssh (>= 2.0.14)
       net-ssh-gateway (>= 1.1.0)
-    diff-lcs (1.1.2)
     highline (1.6.2)
     net-ldap (0.2.2)
     net-ping (1.5.0)
@@ -19,19 +19,11 @@ GEM
     net-ssh (2.1.4)
     net-ssh-gateway (1.1.0)
       net-ssh (>= 1.99.1)
-    rspec (2.6.0)
-      rspec-core (~> 2.6.0)
-      rspec-expectations (~> 2.6.0)
-      rspec-mocks (~> 2.6.0)
-    rspec-core (2.6.4)
-    rspec-expectations (2.6.0)
-      diff-lcs (~> 1.1.2)
-    rspec-mocks (2.6.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  autotest-growl
   capistrano
   net-ping
-  rspec

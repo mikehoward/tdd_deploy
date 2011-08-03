@@ -16,8 +16,8 @@
 ##
 ## Start Monit in the background (run as a daemon):
 #
-# set daemon  120           # check services at 2-minute intervals
-#     with start delay 240  # optional: delay the first check by 4-minutes (by 
+set daemon  120           # check services at 2-minute intervals
+    with start delay 240  # optional: delay the first check by 4-minutes (by 
 #                           # default Monit check immediately after Monit start)
 #
 #
@@ -25,14 +25,14 @@
 ## omitted, Monit will use 'user' facility by default. If you want to log to 
 ## a standalone log file instead, specify the full path to the log file
 #
-# set logfile syslog facility log_daemon                       
+set logfile syslog facility log_daemon                       
 #
 #
 ### Set the location of the Monit id file which stores the unique id for the
 ### Monit instance. The id is generated and stored on first Monit start. By 
 ### default the file is placed in $HOME/.monit.id.
 #
-# set idfile /var/.monit.id
+set idfile /var/monit/.monit.id
 #
 ### Set the location of the Monit state file which saves monitoring states
 ### on each cycle. By default the file is placed in $HOME/.monit.state. If
@@ -40,7 +40,7 @@
 ### the monitoring state across reboots. If it is on temporary filesystem, the
 ### state will be lost on reboot which may be convenient in some situations.
 #
-# set statefile /var/.monit.state
+set statefile /var/monit/.monit.state
 #
 ## Set the list of mail servers for alert delivery. Multiple servers may be 
 ## specified using a comma separator. By default Monit uses port 25 - it is
@@ -112,14 +112,14 @@
 ## Monit has an embedded web server which can be used to view status of 
 ## services monitored and manage services from a web interface. See the
 ## Monit Wiki if you want to enable SSL for the web server. 
-#
-# set httpd port 2812 and
-#     use address localhost  # only accept connection from localhost
-#     allow localhost        # allow localhost to connect to the server and
-#     allow admin:monit      # require user 'admin' with password 'monit'
-#     allow @monit           # allow users of group 'monit' to connect (rw)
-#     allow @users readonly  # allow users of group 'users' to connect readonly
-#
+
+set httpd port 2812 and
+    use address localhost  # only accept connection from localhost
+    allow localhost        # allow localhost to connect to the server and
+    allow admin:monit      # require user 'admin' with password 'monit'
+    allow @monit           # allow users of group 'monit' to connect (rw)
+    allow @users readonly  # allow users of group 'users' to connect readonly
+
 #
 ###############################################################################
 ## Services
