@@ -1,13 +1,54 @@
 # Setup of a Linode Server running Arch Linux
 
+These pseudo-scripts are the actions which are used to configure a remote host
+as a web server for one or more Rails based web sites.
+They are pseudo-scripts rather than full scripts because some actions are indicated
+rather than scripted.
+
+The basic site will look like:
+
+* **ssh** access from a local host (unnamed)
+* web service via **nginx** which acts as a reverse proxy for the
+**'thin'** ruby web server.
+* a local database running **postgresql**
+* multiple sites
+ * each site runs under it's own user id
+ * each site has it's own rvm based ruby installation
+ * each site manages it's own 'thin' web servers and directs monit to monitor them
+ * each site is installed via Capistrano
+* the host run's **monit** - which monitors the health of **nginx**,
+**postgresql**, **postfix**, and all the **thin** web servers for all
+the sites.
+* the host is firewalled using **iptables** and **iptables6**.
+* the host runs a minimal set of sesrvices.
+
 These notes detail setting up a server running Arch linux.
 
-There are a few notes for instructions for Ubuntu, but they are
-incomplete.
+(There are a few notes for instructions for Ubuntu, but they are
+incomplete.)
 
-## set up ssh access
+## TDD Installation
 
-    add user key to ~root/.ssh/authorized_keys
+The **test** directory includes a set of tests to excercise connectivity to the
+host and checks that the basic services are installed and running.
+
+
+
+## Shell Variables Used in enclosed Scripts
+
+These variables are used in the pseudo-scripts.
+
+    HOST=my host name
+    ADMIN=name of admin user on HOST - not root
+    LADMIN=userid of local admin user who has passwordless ssh access
+    LADMIN_EMAIL=email address of local administrator who should receive notifications
+
+## set up root ssh access
+
+We need root ssh access for testing the connection and verifying system level
+installs are working
+
+    add $LADMIN key to ~root/.ssh/authorized_keys
 
     edit /etc/ssh/sshd_config
     
@@ -18,6 +59,26 @@ incomplete.
 
     Test ssh root@hostname to make sure it works, then change
     PermitRootLogin without-password
+
+## Create user $ADMIN
+
+    adduser -G monit $ADMIN
+
+    (fill in as appropriate)
+
+    chmod 711 /home/$ADMIN
+
+    sudo su - $ADMIN
+
+    mkdir htdocs
+    chgrp nginx htdocs
+    chmod 755 htdocs
+    chmod g+s htdocs
+
+Add $ADMIN to sudoer's
+
+    vi /etc/sudoers
+    (add mike as equivalent to root)
 
 
 ## install packages
@@ -236,8 +297,8 @@ Install using:
       set idfile    /var/monit/.monit.id
       set statefile /var/monit/.monit.state
       set mailserver localhost
-      set mail-format { from: root@HOST }  # FIXME!!!!! replace HOST with real host name
-      set alert mike@clove.com                         # receive all alerts
+      set mail-format { from: root@$HOST }  # FIXME!!!!! replace $HOST with real host name (above)
+      set alert $ADMIN_EMAIL                         # receive all alerts
 
       set eventqueue
         basedir /var/monit/eventq  # set the base directory where events will be stored
@@ -251,7 +312,7 @@ Install using:
 	allow @monit           # allow users of group 'monit' to connect (rw)
 	allow @users readonly  # allow users of group 'users' to connect readonly
 
-      check system arch   # FIXME!!!!! - insert system name
+      check system $HOST   # FIXME!!!!! - insert system name
         if loadavg (1min) > 4 then alert
         if loadavg (5min) > 2 then alert
         if memory usage > 75% then alert
@@ -359,7 +420,7 @@ Install using:
 
 Access monit via http through an ssh tunnel:
 
-    ssh -L 2812:<host>:2812 mike@<host>
+    ssh -L 2812:${HOST}:2812 ${ADMIN}@${HOST}
  
 
 ## install snort
@@ -393,28 +454,8 @@ add iptables ip6tables postgresql nginx monitd to DAEMONS
       }' \
     /etc/rc.conf-orig >/etc/rc.conf
     cat /etc/rc.conf
-
-## Create user mike
-
-    adduser -G monit mike
-
-    (fill in as appropriate)
-
-    chmod 711 /home/mike
-
-    sudo su - mike
-
-    mkdir htdocs
-    chgrp nginx htdocs
-    chmod 755 htdocs
-    chmod g+s htdocs
-
-Add mike to sudoer's
-
-    vi /etc/sudoers
-    (add mike as equivalent to root)
     
-## As user 'mike'
+## As user '$ADMIN
 
 ### install rvm
 

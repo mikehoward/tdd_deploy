@@ -1,6 +1,6 @@
 source :rubygems
 
-# gem 'ZenTest', "~> 4.5.0"
+gem 'ZenTest', "~> 4.5.0"
 # gem 'redgreen'
 gem 'autotest-growl'
 

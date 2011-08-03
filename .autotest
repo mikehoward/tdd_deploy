@@ -17,5 +17,5 @@ require 'autotest/bundler'
 # Autotest::RCov.options = o
 
 # require 'redgreen'
-# require 'autotest/growl'
+require 'autotest/growl'
 # require 'autotest/pretty'
