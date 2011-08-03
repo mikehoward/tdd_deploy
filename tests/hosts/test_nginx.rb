@@ -1,6 +1,6 @@
 $:.unshift File.expand_path(File.dirname(__FILE__))
 
-require 'test_helpers'
+require 'test_host'
 
 class TestRemoteNginx < HostTestCase
 

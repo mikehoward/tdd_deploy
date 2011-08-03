@@ -29,8 +29,8 @@ class HostTestCase < Test::Unit::TestCase
   # run_in_ssh_session host, match_exp_or_string, err_msg, &block
   def run_in_ssh_session(host, match, err_msg, &block)
     login = "#{self.admin}@#{host}"
-    raise 'match expression cannot be empty' if match.empty?
     match = Regexp.new(match) if match.is_a? String
+    raise ArgumentError, 'match expression cannot be empty' if match =~ ''
 
     begin
       ssh_session = Net::SSH.start(host, self.admin)
@@ -68,7 +68,7 @@ class HostTestCase < Test::Unit::TestCase
 
 
   def test_run_in_ssh_session
-    assert_raises RuntimeError do
+    assert_raises ArgumentError do
       run_in_ssh_session self.hosts.first, '', 'session catches empty match expression' do
         'uname -a'
       end
