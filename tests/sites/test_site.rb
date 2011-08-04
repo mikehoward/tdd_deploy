@@ -1,11 +1,5 @@
-$:.unshift File.expand_path('../lib', __FILE__)
-$:.unshift File.expand_path('../lib/hosts', __FILE__)
-$:.unshift File.expand_path('../lib/sites', __FILE__)
-
-require 'test/unit'
-require 'net/ssh'
-require 'capistrano'
-require 'test_host'
+$:.unshift File.expand_path('../..', __FILE__)
+require 'test_helpers'
 
 class SiteTestCase < HostTestCase
   attr_accessor :site, :site_user

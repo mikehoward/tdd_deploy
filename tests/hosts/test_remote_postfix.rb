@@ -1,6 +1,6 @@
-$:.unshift File.expand_path(File.dirname(__FILE__))
+$:.unshift File.expand_path('../..', __FILE__)
 
-require 'test_host'
+require 'test_helpers'
 
 class TestRemotePostfix < HostTestCase
 
