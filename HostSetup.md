@@ -40,15 +40,15 @@ These variables are used in the pseudo-scripts.
 
     HOST=my host name
     ADMIN=name of admin user on HOST - not root
-    LADMIN=userid of local admin user who has passwordless ssh access
-    LADMIN_EMAIL=email address of local administrator who should receive notifications
+    LOCAL_ADMIN=userid of local admin user who has passwordless ssh access
+    LOCAL_ADMIN_EMAIL=email address of local administrator who should receive notifications
 
 ## set up root ssh access
 
 We need root ssh access for testing the connection and verifying system level
 installs are working
 
-    add $LADMIN key to ~root/.ssh/authorized_keys
+    add $LOCAL_ADMIN key to ~root/.ssh/authorized_keys
 
     edit /etc/ssh/sshd_config
     
@@ -67,7 +67,7 @@ installs are working
     (fill in as appropriate)
 
     chmod 711 /home/$ADMIN
-
+a
     sudo su - $ADMIN
 
     mkdir htdocs
@@ -89,7 +89,7 @@ As root
 
     pacman -Sy
 
-    pacman -S nginx ruby iptables postgresql postfix
+    pacman -S nginx ruby iptables postgresql postfix monit git
 
     # yes, we immediately remove ruby. We only install it so that the prerequisites are
     #  available to build rubies using 'rvm'. And, yes, it's cheesy, but it works.
@@ -269,16 +269,16 @@ users, in case we need to do different things.
      edit /etc/postfix/main.cf
       add
  
-         process_id_directory = /var/run/postfix.pid
-	 
 	 myhostname = HOSTNAME
 
 ## install & configure monit
 
+NOTE!!!!! There are a bunch of md5 checksums in the file checks. They are probably
+all wrong. You need to manually edit the /etc/monitrc file and check each one
+against 'md5sum <path>'
+
 Install using:
 
-    pacman -S monit
-    
     add monit group:
 
       groupadd monit
@@ -392,7 +392,7 @@ Install using:
         group server
       
       # check postfix - cobbled from apache check
-      check file postmaster_bin with path /usr/sbin/postmaster
+      check file postmaster_bin with path /usr/bin/postmaster
         if failed md5 checksum and
            expect the sum 13704b8f314a0aa92e7d03557595f2de then stop
         if failed permission 755 then stop
@@ -403,7 +403,7 @@ Install using:
           } with the mail-format { subject: "/usr/sbin/postmaster modified " }
         group server
       
-      check process postfix with pidfile /var/run/postmaster.pid
+      check process postfix with pidfile /var/spool/postfix/pid/master.pid
         start program = "/etc/rc.d/postfix start" with timeout 5 seconds # with timeout 60 seconds
         stop program  = "/etc/rc.d/postfix stop"
         if cpu > 60% for 2 cycles then alert
@@ -428,6 +428,15 @@ Access monit via http through an ssh tunnel:
 TBD
 
     pacman -S snort
+
+## install git
+
+If you haven't already installed git, do:
+
+    pacman -S git
+
+The only configuration which will be required is on a per-site basis: each
+site's userid must be set up on github.com as a 
 
 ## set up posgresql
 
