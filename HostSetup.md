@@ -27,6 +27,28 @@ These notes detail setting up a server running Arch linux.
 (There are a few notes for instructions for Ubuntu, but they are
 incomplete.)
 
+    
+## Test Driven Host Setup
+
+The tests/hosts directory contains a bunch of tests which run commands
+on hosts - either selected hosts, or all hosts defined in the :hosts role
+in the Capfile.
+
+The test parameters may be set by defining environment variables.
+
+For Host Provisioning Testing
+
+* HOSTS - list of hosts to run tests on. Default is all hosts defined in the
+:hosts role of the Capfile
+* HOST\_ADMIN - name of admin user on all hosts (NOT root). Defaults to 'host\_admin'
+* LOCAL\_ADMIN - name of admin user on local (maybe development or staging site)
+who has the authority to run commands on all hosts. Should be able to ssh into
+both HOST\_ADMIN and 'root' on all hosts via public key logins. Defaults to
+'local\_admin'
+* LOCAL\_ADMIN_EMAIL - email address of admin who should receive notifications
+from all hosts - typically from 'monit'. Defaults to 'local\_admin@example.com'
+
+
 ## TDD Installation
 
 The **test** directory includes a set of tests to excercise connectivity to the

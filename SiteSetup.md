@@ -8,7 +8,7 @@ code fragments won't necessarily work.
 
     export SITE=
     export DATABASE=$SITE
-    export USERNAME=$SITE
+    export SITE_USER=$SITE
     export PASSWORD=<something>
     
 ## Test Driven Site Setup
@@ -23,14 +23,13 @@ For Host Provisioning Testing
 
 * HOSTS - list of hosts to run tests on. Default is all hosts defined in the
 :hosts role of the Capfile
-* HOST_ADMIN - name of admin user on all hosts (NOT root). Defaults to 'mike',
-because that's me.
-* LOCAL_ADMIN - name of admin user on local (maybe development or staging site)
+* HOST\_ADMIN - name of admin user on all hosts (NOT root). Defaults to 'host_admin'
+* LOCAL\_ADMIN - name of admin user on local (maybe development or staging site)
 who has the authority to run commands on all hosts. Should be able to ssh into
-both HOST_ADMIN and 'root' on all hosts via public key logins. Also defaults to
-'mike'
+both HOST\_ADMIN and 'root' on all hosts via public key logins. Defaults to
+'local\_admin'
 * LOCAL\_ADMIN_EMAIL - email address of admin who should receive notifications
-from all hosts - typically from 'monit'. Defaults to 'nobody@example.com'
+from all hosts - typically from 'monit'. Defaults to 'local\_admin@example.com'
 
 For site installation testing:
 
@@ -38,23 +37,27 @@ For site installation testing:
 * SITE_USER - name of user who owns the site and is the owner of the proxied
 web servers [mongrel or thin]. Defaults to 'site'
 * SITE\_BASE_PORT - starting port number for proxied servers. Defaults to 8000
-* SITE\_NUM_SERVERS - number of mongrel/thin's to spin up.
-
-## Create Postgresql User
-
-    echo 'create user $USERNAME createdb;' | psql postgres postgres
-
-    echo "create database $DATABASE with owner $USERNAME encoding 'utf-8' template template0 ;" | \
-        psql postgres postgres
+* SITE\_NUM_SERVERS - number of mongrel/thin's to spin up. Default is 3
 
 ## Create Account
 
-as root
+as HOST_USER
 
-    useradd --comment 'admin for $SITE' --user-group --create-home --password $PASSWORD $USERNAME
-    echo "$USERNAME ALL=(ALL) ALL" >>/etc/sudoers
+    sudo useradd --comment 'admin for $SITE' --user-group --create-home $SITE_USER
+    sudo mkdir /home/${SITE_USER}/.ssh
+    sudo cp -R /home/${HOST_ADMIN}/.ssh/authorized_keys /home/${SITE_USER}/.ssh
+    sudo chown -R ${SITE_USER} /home/${SITE_USER}/.ssh
+    sudo chmod -R u-w /home/${SITE_USER}/.ssh
+    sudo chmod -R go-rwx /home/${SITE_USER}/.ssh
 
-## as USERNAME
+## Create Postgresql User
+
+    echo 'create user $SITE_USER createdb;' | psql postgres postgres
+
+    echo "create database $DATABASE with owner $SITE_USER encoding 'utf-8' template template0 ;" | \
+        psql postgres postgres
+
+## as SITE_USER
 
     chmod 744 .
     mkdir sites
