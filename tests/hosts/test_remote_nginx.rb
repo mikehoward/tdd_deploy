@@ -1,4 +1,3 @@
-
 $:.unshift File.expand_path('../..', __FILE__)
 
 require 'test_helpers'
@@ -16,5 +15,4 @@ class TestRemoteNginx < HostTestCase
       'ps -p `cat /var/run/nginx.pid`'
     end
   end
-
 end

@@ -10,6 +10,35 @@ code fragments won't necessarily work.
     export DATABASE=$SITE
     export USERNAME=$SITE
     export PASSWORD=<something>
+    
+## Test Driven Site Setup
+
+The tests/hosts directory contains a bunch of tests which run commands
+on hosts - either selected hosts, or all hosts defined in the :hosts role
+in the Capfile.
+
+The test parameters may be set by defining environment variables.
+
+For Host Provisioning Testing
+
+* HOSTS - list of hosts to run tests on. Default is all hosts defined in the
+:hosts role of the Capfile
+* HOST_ADMIN - name of admin user on all hosts (NOT root). Defaults to 'mike',
+because that's me.
+* LOCAL_ADMIN - name of admin user on local (maybe development or staging site)
+who has the authority to run commands on all hosts. Should be able to ssh into
+both HOST_ADMIN and 'root' on all hosts via public key logins. Also defaults to
+'mike'
+* LOCAL\_ADMIN_EMAIL - email address of admin who should receive notifications
+from all hosts - typically from 'monit'. Defaults to 'nobody@example.com'
+
+For site installation testing:
+
+* SITE - name of site. Should satisfy [a-z][_a-z0-9]*  Defaults to 'site'
+* SITE_USER - name of user who owns the site and is the owner of the proxied
+web servers [mongrel or thin]. Defaults to 'site'
+* SITE\_BASE_PORT - starting port number for proxied servers. Defaults to 8000
+* SITE\_NUM_SERVERS - number of mongrel/thin's to spin up.
 
 ## Create Postgresql User
 

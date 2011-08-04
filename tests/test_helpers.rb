@@ -7,17 +7,21 @@ require 'net/ssh'
 require 'capistrano'
 
 class HostTestCase < Test::Unit::TestCase
-  attr_accessor :host_admin, :local_admin, :hosts, :local_admin_email
+  attr_accessor :host_admin, :hosts, :local_admin_email, :local_admin
 
   def setup
     # see HostSetup.md/html for definitions of ADMIN & LOCAL_ADMIN
-    @host_admin = ENV['HOST_ADMIN'] ? ENV['HOST_ADMIN'] : 'mike'
-    @local_admin = ENV['LOCAL_ADMIN'] ? ENV['LOCAL_ADMIN'] : 'mike'
-    @local_admin_email = ENV['LOCAL_ADMIN_EMAIL'] ? ENV['LOCAL_ADMIN_EMAIL'] : 'mike@clove.com'
-    require 'capistrano'
-    c = Capistrano::Configuration.new
-    c.load 'Capfile'
-    @hosts = c.roles[:hosts].map { |x| x.to_s }
+    @host_admin = ENV['HOST_ADMIN'] ? ENV['HOST_ADMIN'] : 'host_admin'
+    @local_admin = ENV['LOCAL_ADMIN'] ? ENV['LOCAL_ADMIN'] : 'local_admin'
+    @local_admin_email = ENV['LOCAL_ADMIN_EMAIL'] ? ENV['LOCAL_ADMIN_EMAIL'] : 'local_admin@example.com'
+    if ENV['HOSTS']
+      @hosts = ENV['HOSTS'].split
+    else
+      require 'capistrano'
+      c = Capistrano::Configuration.new
+      c.load 'Capfile'
+      @hosts = c.roles[:hosts].map { |x| x.to_s }
+    end
   end
 
   def run_on_all_hosts(match_expr_or_str, err_msg, &block)
@@ -77,5 +81,18 @@ class HostTestCase < Test::Unit::TestCase
       flunk("error talking to #{host} as #{userid}: #{e.message}")
       ssh_session.shutdown! if ssh_session instance_of? Capistrano::SSH
     end
+  end
+end
+
+
+class SiteTestCase < HostTestCase
+  attr_accessor :site, :site_user, :site_base_port, :site_num_servers
+
+  def setup
+    super
+    @site = ENV['SITE'] ? ENV['SITE'] : 'site'
+    @site_user = ENV['SITE_USER'] ? ENV['SITE_USER'] : 'site'
+    @site_base_port = ENV['SITE_BASE_PORT'] ? ENV['SITE_BASE_PORT'].to_i : 8000
+    @site_num_servers = ENV['SITE_NUM_SERVERS'] ? ENV['SITE_NUM_SERVERS'].to_i : 3
   end
 end
