@@ -6,11 +6,12 @@ puts $:[0]
 require 'test/unit'
 require 'net/ssh'
 require 'capistrano'
-require 'tdd_deploy/run_methods'
+require 'tdd_deploy'
 
 class HostTestCase < Test::Unit::TestCase
 
-  include TddDeploy::RunMethods
+  # include TddDeploy::TestMethods
+  include TddDeploy
 
   def setup
     # see HostSetup.md/html for definitions of ADMIN & LOCAL_ADMIN
@@ -31,8 +32,6 @@ end
 
 
 class SiteTestCase < HostTestCase
-  attr_accessor :site, :site_user, :site_base_port, :site_num_servers
-
   def setup
     super
     @site = ENV['SITE'] ? ENV['SITE'] : 'site'

@@ -12,7 +12,7 @@ class TestHostConnection < HostTestCase
   end
 
   def test_ssh_login
-    run_on_all_hosts "/home/#{self.host_admin}\n", "unable to connect via ssh" do
+    deploy_test_on_all_hosts "/home/#{self.host_admin}\n", "unable to connect via ssh" do
       'pwd'
     end
   end
