@@ -1,6 +1,10 @@
 $:.unshift File.expand_path('..', __FILE__)
 require 'test_helpers'
 
+# ENV.each do |k, v|
+#   puts "#{k}: #{v}" if k =~ /SITE|HOST|LOCAL/
+# end
+
 class  HostHelpersTestCase < HostTestCase
 
   def setup
