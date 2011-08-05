@@ -19,7 +19,7 @@ module TddDeploy
   env_init = {
       'ssh_timeout' => 5,
       'host_admin' => "'host_admin'",
-      'hosts' => "''",
+      'host_list' => "''",
       'local_admin' => "'local_admin'",
       'local_admin_email' => "'local_admin@bogus.tld'",
   
@@ -29,10 +29,13 @@ module TddDeploy
       'site_num_servers' => 3,
     }
 
+    # returns the environment hash from the class
     def mod.env_hash
       @env_hash
     end
 
+    # reads the environment from TddDeploy::ENV_FNAME (site_host_setup.env) if the file exists
+    # someplace between the current directory and the root of the filesystem
     def mod.read_env(env_init = nil)
       dir_path = Dir.pwd
       @env_hash = env_init || {}
@@ -58,6 +61,7 @@ module TddDeploy
       nil
     end
   
+    # saves the current environment in the current working directory
     def mod.save_env
       f = File.new(TddDeploy::ENV_FNAME, "w")
       @env_hash.each do |k, v|
@@ -81,8 +85,25 @@ module TddDeploy
     end
   end
 
+  # hosts is the host list
+  def hosts
+    @hosts ||= self.host_list.split /[\s,]+/
+  end
+  
+  # hosts = array of hosts
+  def hosts=(host_list)
+    @host_list = host_list.join(',')
+    @hosts = host_list
+  end
+
+  # instance method which calls self.class.save_env
   def save_env
     self.class.save_env
+  end
+  
+  # instance method access to self.class.env_hash
+  def env_hash
+    self.class.env_hash
   end
 
   # include core methods

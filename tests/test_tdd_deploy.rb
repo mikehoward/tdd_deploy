@@ -15,7 +15,7 @@ class TestTddDeployTestCase < Test::Unit::TestCase
     env_defaults = {
       'ssh_timeout' => 5,
       'host_admin' => "'host_admin'",
-      'hosts' => "''",
+      'host_list' => "''",
       'local_admin' => "'local_admin'",
       'local_admin_email' => "'local_admin@bogus.tld'",
   
@@ -48,7 +48,7 @@ class TestTddDeployTestCase < Test::Unit::TestCase
     env_defaults = {
       'ssh_timeout' => 5,
       'host_admin' => "'host_admin'",
-      'hosts' => "''",
+      'host_list' => "''",
       'local_admin' => "'local_admin'",
       'local_admin_email' => "'local_admin@bogus.tld'",
   
@@ -76,5 +76,13 @@ class TestTddDeployTestCase < Test::Unit::TestCase
 
     assert_equal 10, self.ssh_timeout, "ssh_timeout should still be 10"
     assert_equal 10, self.class.env_hash['ssh_timeout'], "env_hash['ssh_timeout'] should still be 10"
+   end
+   
+   def test_hosts
+     assert self.hosts.is_a?(Array), "hosts should be an array"
+     
+     self.hosts = ['foo', 'bar']
+     assert_equal ['foo', 'bar'], self.hosts, "setting hosts should yield an array"
+     assert_equal "foo,bar", self.host_list, "setting hosts should set host_list to comma separated list"
    end
 end

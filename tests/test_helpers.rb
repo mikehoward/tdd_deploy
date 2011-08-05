@@ -14,16 +14,16 @@ class HostTestCase < Test::Unit::TestCase
 
   def setup
     # see HostSetup.md/html for definitions of ADMIN & LOCAL_ADMIN
-    @host_admin = ENV['HOST_ADMIN'] ? ENV['HOST_ADMIN'] : 'host_admin'
-    @local_admin = ENV['LOCAL_ADMIN'] ? ENV['LOCAL_ADMIN'] : 'local_admin'
-    @local_admin_email = ENV['LOCAL_ADMIN_EMAIL'] ? ENV['LOCAL_ADMIN_EMAIL'] : 'local_admin@example.com'
-    if ENV['HOSTS']
-      @hosts = ENV['HOSTS'].split
+    ['HOST_ADMIN', 'LOCAL_ADMIN', 'LOCAL_ADMIN_EMAIL'].each do |key|
+      self.send "#{key.downcase}=".to_sym, ENV[key] if defined? ENV[key]
+    end
+    if defined? ENV['HOSTS']
+      self.hosts = ENV['HOSTS']
     else
       require 'capistrano'
       c = Capistrano::Configuration.new
       c.load 'Capfile'
-      @hosts = c.roles[:hosts].map { |x| x.to_s }
+      self.hosts = c.roles[:hosts].map { |x| x.to_s }
     end
   end
 
@@ -33,9 +33,8 @@ end
 class SiteTestCase < HostTestCase
   def setup
     super
-    @site = ENV['SITE'] ? ENV['SITE'] : 'site'
-    @site_user = ENV['SITE_USER'] ? ENV['SITE_USER'] : 'site'
-    @site_base_port = ENV['SITE_BASE_PORT'] ? ENV['SITE_BASE_PORT'].to_i : 8000
-    @site_num_servers = ENV['SITE_NUM_SERVERS'] ? ENV['SITE_NUM_SERVERS'].to_i : 3
+    ['SITE', 'SITE_USER', 'SITE_BASE_PORT', 'SITE_NUM_SERVERS'].each do |key|
+      self.send "#{key.downcase}=".to_sym, ENV[key] if defined? ENV[key]
+    end
   end
 end
