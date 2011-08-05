@@ -10,7 +10,6 @@ require 'tdd_deploy'
 
 class HostTestCase < Test::Unit::TestCase
 
-  # include TddDeploy::TestMethods
   include TddDeploy
 
   def setup
