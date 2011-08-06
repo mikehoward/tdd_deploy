@@ -1,4 +1,5 @@
 TODO rewrite self.host_list= to update self.hosts array
+TODO fix save_env so that lists are handled properly - currently does not put them in quotes in the env file
 TODO do something to memorize env variables and drag them into tests and run_cmd.rb
 TODO rewrite run_cmd.sh as a ruby script which passes commands to the various run... scripts
 TODO modify run_cmd.sh to run on hosts by passing the command to ruby after requiring tests/test_helpers.rb

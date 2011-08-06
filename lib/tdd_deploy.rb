@@ -16,18 +16,24 @@ module TddDeploy
   # set up all the standard accessors
   def self.included(mod)
   
-  env_init = {
+  env_init_int_params = {
       'ssh_timeout' => 5,
+      'site_base_port' => 8000,
+      'site_num_servers' => 3,
+    }
+    env_init_str_params = {
       'host_admin' => "'host_admin'",
       'host_list' => "''",
       'local_admin' => "'local_admin'",
       'local_admin_email' => "'local_admin@bogus.tld'",
-  
+
       'site' => "'site'",
       'site_user' => "'site_user'",
-      'site_base_port' => 8000,
-      'site_num_servers' => 3,
     }
+    env_init_list_params = {
+        'host_list' => "''",
+    }
+    env_init_merged = env_init_list_params.merge(env_init_str_params).merge(env_init_int_params)
 
     # returns the environment hash from the class
     def mod.env_hash
@@ -60,6 +66,10 @@ module TddDeploy
       end
       nil
     end
+    
+    def mod.reset_env
+      puts env_init_merged
+    end
   
     # saves the current environment in the current working directory
     def mod.save_env
@@ -70,24 +80,44 @@ module TddDeploy
       f.close
     end
 
-    mod.read_env env_init
-    env_init.each do |k, v|
+    mod.read_env env_init_merged
+    env_init_merged.each do |k, v|
       tmp =<<-EOF
       def #{k}
         @#{k} ||= (self.class.env_hash['#{k}'] || #{v})
       end
+      EOF
+      mod.class_eval tmp
+    end
+    env_init_str_params.each do |k, v|
+      tmp =<<-EOF
       def #{k}=(val)
-        @#{k} = self.class.env_hash['#{k}'] = val
+        @#{k} = self.class.env_hash['#{k}'] = val.to_s
       end
       EOF
-
+      mod.class_eval tmp
+    end
+    env_init_int_params.each do |k, v|
+      tmp =<<-EOF
+      def #{k}=(val)
+        @#{k} = self.class.env_hash['#{k}'] = val.to_i
+      end
+      EOF
+      mod.class_eval tmp
+    end
+    env_init_list_params.each do |k, v|
+      tmp =<<-EOF
+      def #{k}=(val)
+        @#{k} = self.class.env_hash['#{k}'] = val.to_s.split(/[\s,]+/).join(',')
+      end
+      EOF
       mod.class_eval tmp
     end
   end
 
   # hosts is the host list
   def hosts
-    @hosts ||= self.host_list.split /[\s,]+/
+    @hosts ||= self.host_list.split(/[\s,]+/)
   end
   
   # hosts = array of hosts

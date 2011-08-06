@@ -1,6 +1,7 @@
 $:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'tdd_deploy'
+require 'curses'
 
 class TddDeployEnv
   include TddDeploy
@@ -8,10 +9,11 @@ class TddDeployEnv
   attr_accessor :modified
 
   def show_env
+    puts "============================================="
+    self.flash
     self.class.env_hash.each do |k, v|
       printf "%-20s: %s\n", k, v
     end
-    self.flash
     "(Env Key OR S[ave] to Save OR Q[uit] Quit + Save OR X[it] to Quit w/o Saving)\n? "
   end
 
