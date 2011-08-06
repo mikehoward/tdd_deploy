@@ -64,44 +64,45 @@ module TddDeploy
       end
       [rsp, err_rsp, cmd]
     end
-  end
   
-  # run locally runs a comman locally and returns the output of stdout, stderr, and the command
-  # run in a 3 element array
-  def run_locally cmd = nil, &block
-    cmd ||= ''
-    cmd += block.call if block_given?
+    # run locally runs a comman locally and returns the output of stdout, stderr, and the command
+    # run in a 3 element array
+    def run_locally(cmd = nil, &block)
+      cmd ||= ''
+      cmd += block.call if block_given?
 
-    raise "Unable to run_locally - fork method not useable" unless Process.respond_to? :fork
+      raise "Unable to run_locally - fork method not useable" unless Process.respond_to? :fork
 
-    child_stdout, stdout_pipe = IO.pipe
-    child_stderr, stderr_pipe = IO.pipe
-    unless (pid = Process.fork)
-      STDIN.close
-      STDOUT.reopen(stdout_pipe)
-      STDERR.reopen(stderr_pipe)
-      begin
-        Process.exec ENV, cmd
-      rescue SystemCallError => e
-        STDERR.write("Unable to execute command '#{cmd}'\n  #{e}")
-      ensure
-        exit
+      child_stdout, stdout_pipe = IO.pipe
+      child_stderr, stderr_pipe = IO.pipe
+      unless (pid = Process.fork)
+        STDIN.close
+        STDOUT.reopen(stdout_pipe)
+        STDERR.reopen(stderr_pipe)
+        begin
+          Process.exec ENV, cmd
+        rescue SystemCallError => e
+          STDERR.write("Unable to execute command '#{cmd}'\n  #{e}")
+        ensure
+          exit
+        end
       end
+
+      Process.wait
+
+      stdout = ''
+      stderr = ''
+      loop do
+        reads, writes, obands = IO.select([child_stdout, child_stderr], [], [], 1)
+        break if reads.nil?
+        stdout += child_stdout.read_nonblock(1024) if reads.include? child_stdout
+        stderr += child_stderr.read_nonblock(1024) if reads.include? child_stderr
+      end
+      stdout = nil if stdout.empty?
+      stderr = nil if stderr.empty?
+
+      [stdout, stderr, cmd]
     end
 
-    Process.wait
-
-    stdout = ''
-    stderr = ''
-    loop do
-      reads, writes, obands = IO.select([child_stdout, child_stderr], [], [], 1)
-      break if reads.nil?
-      stdout += child_stdout.read_nonblock(1024) if reads.include? child_stdout
-      stderr += child_stderr.read_nonblock(1024) if reads.include? child_stderr
-    end
-    stdout = nil if stdout.empty?
-    stderr = nil if stderr.empty?
-
-    [stdout, stderr, cmd]
   end
 end
