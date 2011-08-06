@@ -66,4 +66,16 @@ class RunMethodsTestCase < Test::Unit::TestCase
     refute_nil results['ubuntu'][1], 'failure message for ubuntu'
     assert_equal results['ubuntu'][2], 'pwd', 'cmd should be pwd'
   end
+  
+  def test_run_locally
+    stdin, stderr, cmd = run_locally { 'echo foo' }
+    assert_equal "foo\n", stdin, "echo foo should echo foo\\n"
+    assert_nil stderr, "stderr should be nil"
+    assert_equal 'echo foo', cmd, "cmd should be 'echo foo'"
+
+    stdin, stderr, cmd = run_locally { 'bad-command foo' }
+    assert_nil stdin, "stdin should be nil for bad command"
+    refute_nil stderr, "stderr should not be nil"
+    assert_equal 'bad-command foo', cmd, "cmd should be 'bad-command foo'"
+  end
 end

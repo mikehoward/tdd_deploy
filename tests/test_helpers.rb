@@ -15,7 +15,8 @@ class HostTestCase < Test::Unit::TestCase
   def setup
     # see HostSetup.md/html for definitions of ADMIN & LOCAL_ADMIN
     ['HOST_ADMIN', 'LOCAL_ADMIN', 'LOCAL_ADMIN_EMAIL'].each do |key|
-      self.send "#{key.downcase}=".to_sym, ENV[key] if defined? ENV[key]
+      puts "#{key.downcase}=" + ": '#{ENV[key]}'"  if defined? ENV[key]
+      self.send("#{key.downcase}=".to_sym, ENV[key]) if defined? ENV[key]
     end
     if defined? ENV['HOSTS']
       self.hosts = ENV['HOSTS']

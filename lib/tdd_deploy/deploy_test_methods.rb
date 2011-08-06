@@ -1,0 +1,52 @@
+module TddDeploy
+  module DeployTestMethods
+    # deploy_test_on_all_hosts runs the command(s) return by '&block' on all hosts in self.hosts
+    # as user 'self.host_admin'.
+    # For each host, an error is declared if EITHER STDOUT does not match 'match_expr_or_str'
+    # OR if the command returns anything on STDERR.
+    # 'match_expr_or_str' can be a Regexp or a string (which will be converted to a Regexp)
+    def deploy_test_on_all_hosts(match_expr_or_str, err_msg, &block)
+      deploy_test_on_all_hosts_as self.host_admin, match_expr_or_str, err_msg, &block
+    end
+
+    # deploy_test_on_all_hosts_as runs the command(s) return by '&block' on all hosts in self.hosts
+    # as the specified user 'userid'.
+    # For each host, an error is declared if EITHER STDOUT does not match 'match_expr_or_str'
+    # OR if the command returns anything on STDERR.
+    # 'match_expr_or_str' can be a Regexp or a string (which will be converted to a Regexp)
+    def deploy_test_on_all_hosts_as(userid, match_expr_or_str, err_msg, &block)
+      self.hosts.each do |host|
+        deploy_test_in_ssh_session_as userid, host, match_expr_or_str, err_msg, &block
+      end
+    end
+
+    # deploy_test_in_ssh_session host, match_exp_or_string, err_msg, &block runs the command
+    # returned by 'block.call' on the specified host as user 'self.host_admin'.
+    # declares an error if EITHER STDOUT does not match 'match' OR STDERR returns anything
+    # 'match' can be a Regexp or a string (which will be converted to a Regexp)
+    def deploy_test_in_ssh_session(host, match, err_msg, &block)
+      deploy_test_in_ssh_session_as(self.host_admin, host, match, err_msg, &block)
+    end
+
+    # deploy_test_in_ssh_session_as runs the command(s) return by '&block' on the specified host
+    # as user 'userid'
+    # declares an error if EITHER STDOUT does not match 'match' OR STDERR returns anything
+    # 'match' can be a Regexp or a string (which will be converted to a Regexp)
+    def deploy_test_in_ssh_session_as(userid, host, match, err_msg, &block)
+      match = Regexp.new(match) if match.is_a? String
+      raise ArgumentError, 'match expression cannot be empty' if match =~ ''
+
+puts "err_msg: #{err_msg}"
+puts "block.call: '#{block.call}'"
+      
+      rsp, err_rsp, cmd = run_in_ssh_session_as(userid, host, &block)
+
+      flunk "Host: #{host}: command generated error data:\n" +
+        "  command: #{cmd}\n rsp: '#{rsp}'\n err rsp: '#{err_rsp}'" if err_rsp
+
+      refute_nil rsp, "Host: #{host}: stdout is empty for command '#{cmd}'"
+
+      assert_match match, rsp, "Host: #{host}: #{err_msg}\n rsp: #{rsp}"
+    end
+  end
+end
