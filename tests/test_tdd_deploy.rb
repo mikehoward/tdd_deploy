@@ -6,16 +6,18 @@ require 'tdd_deploy'
 
 class TestTddDeployTestCase < Test::Unit::TestCase
   include TddDeploy
+  puts "self: #{self}"
+  puts "self.public_methods: #{self.public_methods(false)}"
 
   def setup
-    # File.delete TddDeploy::ENV_FNAME if File.exists? TddDeploy::ENV_FNAME
+    # File.delete TddDeploy::Environ::ENV_FNAME if File.exists? TddDeploy::Environ::ENV_FNAME
   end
   
   def teardown
     env_defaults = {
       'ssh_timeout' => 5,
       'host_admin' => "'host_admin'",
-      'host_list' => "''",
+      'hosts' => "''",
       'local_admin' => "'local_admin'",
       'local_admin_email' => "'local_admin@bogus.tld'",
   
@@ -23,8 +25,9 @@ class TestTddDeployTestCase < Test::Unit::TestCase
       'site_user' => "'site_user'",
       'site_base_port' => 8000,
       'site_num_servers' => 3,
-    }
-    self.class.read_env env_defaults
+    }.each do |k, v|
+      self.send "#{k}=".to_sym, v
+    end
     self.class.save_env
   end
 
@@ -47,17 +50,16 @@ class TestTddDeployTestCase < Test::Unit::TestCase
   def test_env_defaults
     env_defaults = {
       'ssh_timeout' => 5,
-      'host_admin' => "'host_admin'",
-      'host_list' => "''",
-      'local_admin' => "'local_admin'",
-      'local_admin_email' => "'local_admin@bogus.tld'",
+      'host_admin' => "host_admin",
+      'local_admin' => "local_admin",
+      'local_admin_email' => "local_admin@bogus.tld",
   
-      'site' => "'site'",
-      'site_user' => "'site_user'",
+      'site' => "site",
+      'site_user' => "site_user",
       'site_base_port' => 8000,
       'site_num_servers' => 3,
     }
-    self.class.read_env env_defaults
+    self.class.reset_env env_defaults
     env_defaults.each do |k, v|
       assert_equal v, self.send(k.to_sym), "self.#{k} should be #{v}"
       assert_equal v, self.class.env_hash[k], "the default env should set :#{k} to '#{v}'"
@@ -81,8 +83,7 @@ class TestTddDeployTestCase < Test::Unit::TestCase
    def test_hosts
      assert self.hosts.is_a?(Array), "hosts should be an array"
      
-     self.hosts = ['foo', 'bar']
+     self.hosts = 'foo bar'
      assert_equal ['foo', 'bar'], self.hosts, "setting hosts should yield an array"
-     assert_equal "foo,bar", self.host_list, "setting hosts should set host_list to comma separated list"
    end
 end
