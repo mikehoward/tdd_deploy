@@ -36,9 +36,6 @@ module TddDeploy
       match = Regexp.new(match) if match.is_a? String
       raise ArgumentError, 'match expression cannot be empty' if match =~ ''
 
-puts "err_msg: #{err_msg}"
-puts "block.call: '#{block.call}'"
-      
       rsp, err_rsp, cmd = run_in_ssh_session_as(userid, host, &block)
 
       flunk "Host: #{host}: command generated error data:\n" +
