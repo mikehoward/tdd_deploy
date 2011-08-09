@@ -1,7 +1,9 @@
 $:.unshift File.expand_path('../../lib', __FILE__)
-# $:.unshift File.expand_path('../lib/hosts', __FILE__)
-# $:.unshift File.expand_path('../lib/sites', __FILE__)
-puts $:[0]
+
+# Add bundler setup to load path
+require 'rubygems'
+require 'bundler/setup'
+# $:.each { |x| puts x }
 
 require 'test/unit'
 require 'net/ssh'

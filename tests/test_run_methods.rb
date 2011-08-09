@@ -1,12 +1,14 @@
 $:.unshift File.expand_path('..', __FILE__)
 require 'test_helpers'
-require 'tdd_deploy'
+require 'tdd_deploy/environ'
+require 'tdd_deploy/run_methods'
 
 class RunMethodsTestCase < Test::Unit::TestCase
-  include TddDeploy
+  include TddDeploy::Environ
+  include TddDeploy::RunMethods
 
   def setup
-    self.hosts = ['arch', 'ubuntu']
+    self.hosts = 'arch,ubuntu'
     self.host_admin = 'mike'
     self.ssh_timeout = 2
   end

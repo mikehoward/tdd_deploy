@@ -1,40 +1,46 @@
 $:.unshift File.expand_path('..', __FILE__)
 require 'test_helpers'
+require 'tdd_deploy/environ'
+require 'tdd_deploy/run_methods'
+require 'tdd_deploy/deploy_test_methods'
 
 # ENV.each do |k, v|
 #   puts "#{k}: #{v}" if k =~ /SITE|HOST|LOCAL/
 # end
 
-class  DeployTestMethodsTestCase < HostTestCase
+class  DeployTestMethodsTestCase < Test::Unit::TestCase
+  # def setup
+  #   ENV['HOST_ADMIN'] = 'mike'
+  #   ENV['LOCAL_ADMIN'] = 'mike'
+  #   ENV['LOCAL_ADMIN_EMAIL'] = 'mike@clove.com'
+  #   ENV['HOSTS'] = 'arch'
+  #   super
+  # end
+  include TddDeploy::Environ
+  include TddDeploy::RunMethods
+  include TddDeploy::DeployTestMethods
 
   def setup
-    ENV['HOST_ADMIN'] = 'mike'
-    ENV['LOCAL_ADMIN'] = 'mike'
-    ENV['LOCAL_ADMIN_EMAIL'] = 'mike@clove.com'
-    ENV['HOSTS'] = 'arch'
-    super
+    self.host_admin = 'mike'
+    self.local_admin = 'mike'
+    self.hosts = 'arch,ubuntu'
+    self.ssh_timeout = 2
   end
 
   def test_default_env
-    # this idiocy removes the environment variables that setup uses in this test
-    # and calls self.super.setup (if that were actually possible)
-    ['HOST_ADMIN', 'LOCAL_ADMIN', 'LOCAL_ADMIN_EMAIL', 'HOSTS'].each { |x| ENV.delete x }
-    super_setup = HostTestCase.instance_method :setup
-    bound_super_setup = super_setup.bind self
-    bound_super_setup.call
-
+    self.reset_env(self.env_defaults)
     assert_equal 'host_admin', self.host_admin, "host_admin should be 'host_admin'"
     assert_equal 'local_admin', self.local_admin, "local_admin should be 'local_admin'"
-    assert_equal 'local_admin@example.com', self.local_admin_email, "local_admin_email should be 'local_admin@example.com'"
+    assert_equal 'local_admin@bogus.tld', self.local_admin_email, "local_admin_email should be 'local_admin@bogus.tld'"
 #    assert_equal 'hosts', self.hosts, "hosts should be 'arch'"
-    assert_equal ['arch'], self.hosts, "hosts should be 'arch'"
+    assert_equal ['foo', 'bar'], self.hosts, "hosts should be 'arch,ubuntu'"
   end
 
   def test_custom_env
+    self.reset_env 'host_admin' => 'mike', :local_admin => 'mike', :local_admin_email => 'mike@clove.com', :hosts => 'arch'
     assert_equal 'mike', self.host_admin, "host_admin should be 'mike'"
     assert_equal 'mike', self.local_admin, "local_admin should be 'mike'"
     assert_equal 'mike@clove.com', self.local_admin_email, "local_admin_email should be 'mike@clove.com'"
-#    assert_equal 'hosts', self.hosts, "hosts should be 'arch'"
     assert_equal ['arch'], self.hosts, "hosts should be 'arch'"
   end
 

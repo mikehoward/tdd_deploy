@@ -2,6 +2,8 @@ GEM
   remote: http://rubygems.org/
   specs:
     ZenTest (4.5.0)
+    activesupport (3.1.0.rc5)
+      multi_json (~> 1.0)
     autotest-growl (0.2.9)
     capistrano (2.6.0)
       highline
@@ -10,6 +12,7 @@ GEM
       net-ssh (>= 2.0.14)
       net-ssh-gateway (>= 1.1.0)
     highline (1.6.2)
+    multi_json (1.0.3)
     net-ldap (0.2.2)
     net-ping (1.5.0)
       net-ldap (~> 0.2.2)
@@ -26,6 +29,7 @@ PLATFORMS
 
 DEPENDENCIES
   ZenTest (~> 4.5.0)
+  activesupport
   autotest-growl
   capistrano
   net-ping
