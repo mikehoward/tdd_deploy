@@ -20,14 +20,14 @@ class RunMethodsTestCase < Test::Unit::TestCase
     assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"
     assert_nil stderr, "should not return error if can connect to host"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
-
+  
     stdout, stderr = run_in_ssh_session_as 'mike', 'no-host' do
       'pwd'
     end
     refute_equal "/home/mike\n", stdout, "should not return home directory for bad host name"
     refute_nil stderr, "should return an error message for bad host name"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
-
+  
     stdout, stderr = run_in_ssh_session_as 'no-user', 'arch' do
       'pwd'
     end
@@ -59,7 +59,7 @@ class RunMethodsTestCase < Test::Unit::TestCase
   
   def test_run_on_all_hosts
     results = run_on_all_hosts { 'pwd' }
-
+  
     assert_equal "/home/mike\n", results['arch'][0], "should run correctly on arch"
     assert_nil results['arch'][1], "no errors on arch"
     assert_equal results['arch'][2], 'pwd', 'cmd should be pwd'
@@ -70,14 +70,21 @@ class RunMethodsTestCase < Test::Unit::TestCase
   end
   
   def test_run_locally
-    stdin, stderr, cmd = run_locally { 'echo foo' }
-    assert_equal "foo\n", stdin, "echo foo should echo foo\\n"
+    stdout, stderr, cmd = run_locally { 'echo foo' }
+    assert_equal "foo\n", stdout, "echo foo should echo foo\\n"
     assert_nil stderr, "stderr should be nil"
     assert_equal 'echo foo', cmd, "cmd should be 'echo foo'"
-
-    stdin, stderr, cmd = run_locally { 'bad-command foo' }
-    assert_nil stdin, "stdin should be nil for bad command"
+  
+    stdout, stderr, cmd = run_locally { 'bad-command foo' }
+    assert_nil stdout, "stdout should be nil for bad command"
     refute_nil stderr, "stderr should not be nil"
     assert_equal 'bad-command foo', cmd, "cmd should be 'bad-command foo'"
+  end
+  
+  def test_run_locally_with_input
+    input_text = "one line of text\n"
+    stdout, stderr, cmd = run_locally(input_text) { 'cat -' }
+    assert_equal input_text, stdout, "command should echo input: '#{input_text}"
+    assert_nil stderr, "command should not generate errs"
   end
 end

@@ -14,7 +14,7 @@ class TddDeployEnv
     self.class.env_hash.each do |k, v|
       printf "%-20s: %s\n", k, v
     end
-    "(Env Key OR S[ave] to Save OR Q[uit] Quit + Save OR X[it] to Quit w/o Saving)\n? "
+    "(Env Key OR S[ave] to Save OR Q[uit] Quit + Save OR E[xit] to quit w/o Saving)\n? "
   end
 
   def modified?
@@ -28,6 +28,11 @@ class TddDeployEnv
   def flash
     puts @flash if @flash
     @flash = nil
+  end
+  
+  def save
+    self.save_env if self.modified?
+    self.modified = false
   end
 
   def parse_cmd(cmd)
@@ -43,9 +48,13 @@ class TddDeployEnv
     key_regx = Regexp.new('^' + key_prefix, Regexp::IGNORECASE)
     matching_keys = self.class.env_hash.keys.select { |k| key_regx.match(k) }
 
+    if matching_keys.size > 1 && matching_keys.include?(key_prefix)
+      matching_keys = [key_prefix]
+    end
+
     case matching_keys.size
     when 0
-      self.flash = "No environment variable matches #{key}"
+      self.flash = "No environment variable matches #{key_prefix}"
     when 1
       key = matching_keys.first
       self.send "#{key}=".to_sym, param_value
@@ -63,20 +72,26 @@ begin
   STDOUT.write tdd_deploy_env.show_env
   STDOUT.flush
   
+  if STDIN.eof?
+    STDERR.write "Unexpected End of Input - aborting"
+    STDERR.write " - Discarding Unsaved Edits" if tdd_deploy_env.modified?
+    STDERR.write "\n"
+    STDERR.flush
+    break
+  end
   cmd = STDIN.readline.strip
   puts cmd
   
-  if cmd =~ /^q(uit)?/i || STDIN.closed?
-    tdd_deploy_env.save_env if tdd_deploy_env.modified?
+  if cmd =~ /^q(uit)?$/i
+    tdd_deploy_env.save
     exit
-  end
-  if cmd =~ /^s(ave)?/i
-    tdd_deploy_env.save_env if tdd_deploy_env.modified?
-  end
-  if cmd =~ /^X(it)?$/i
+  elsif cmd =~ /^s(ave)?$/i
+    tdd_deploy_env.save
+  elsif cmd =~ /^e(xit)?$/i
     exit
+  else
+    tdd_deploy_env.parse_cmd(cmd)
   end
-  tdd_deploy_env.parse_cmd(cmd)
 # rescue Exception => e
 #   puts "Rescuing!!!!: #{e}"
 #   exit 1

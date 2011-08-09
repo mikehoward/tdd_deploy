@@ -61,7 +61,7 @@ module TddDeploy
           case self.env_types[k]
           when :int then @env_hash[k] = v.to_i
           when :string then @env_hash[k] = v.to_s
-          when :list then @env_hash[k] = v.to_s.split(/[\s,]+/)
+          when :list then @env_hash[k] = self.str_to_list(v)
           else
             raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
           end
@@ -79,7 +79,8 @@ module TddDeploy
               if line =~ /^\s*(\w+)\s*=\s*(\d+)\s*$/
                 self.env_hash[$1.downcase] = $2.to_i
               elsif line =~ /^\s*(\w+)\s*=\s*(.*?)\s*$/
-                self.env_hash[$1.downcase] = $2.to_s
+                key = $1.downcase
+                self.env_hash[key] = self.env_types[key] == :list ? self.str_to_list($2) : $2.to_s
               else
                 puts "unmatched line: #{line}"
               end
@@ -97,15 +98,31 @@ module TddDeploy
         nil
       end
 
+      def str_to_list str
+        case
+        when str.is_a?(String) then str.split(/[\s,]+/).uniq.sort
+        when str.is_a?(Array) then str.uniq.sort
+        else
+          raise ArgumentError.new("str_to_list: #{str}")
+        end
+      end
+      
+      def list_to_str key
+        (tmp = self.env_hash[key]).is_a?(Array) ? tmp.join(',') : tmp.to_s
+      end
+
       # saves the current environment in the current working directory in the file
       # 'site_host_setup.env' [aka TddDeploy::Environ::ENV_FNAME]
       def save_env
         f = File.new(TddDeploy::Environ::ENV_FNAME, "w")
-        self.env_hash.each do |k, v|
+        self.env_types.keys.each do |k|
+          v = self.env_hash[k] || ''
           case self.env_types[k]
           when :int then f.write "#{k}=#{v}\n"
           when :string then f.write "#{k}=#{v}\n"
-          when :list then f.write "#{k}=#{v.join(',')}\n"
+          when :list then f.write "#{k}=#{self.list_to_str(v)}\n"
+          else
+            raise RuntimeError("unknown key: #{k}")
           end
         end
         f.close
@@ -169,7 +186,7 @@ module TddDeploy
       'site' => "site",
       'site_user' => "site_user",
 
-      'hosts' => "foo,bar",
+      'hosts' => "bar,foo",
       'balance_hosts' => '',
       'db_hosts' => '',
       'web_hosts' => '',
@@ -199,7 +216,7 @@ module TddDeploy
       when :list
         tmp +=<<-EOF
         def #{k}=(v)
-          self.env_hash['#{k}'] = v.to_s.split(/[\s,]+/)
+          self.env_hash['#{k}'] = self.str_to_list(v)
         end
         EOF
       end

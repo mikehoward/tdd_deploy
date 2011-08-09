@@ -67,16 +67,32 @@ module TddDeploy
   
     # run locally runs a comman locally and returns the output of stdout, stderr, and the command
     # run in a 3 element array
-    def run_locally(cmd = nil, &block)
-      cmd ||= ''
-      cmd += block.call if block_given?
+    #
+    # to send input to the subprocess, include the optional 'stdin_text' parameter. Don't
+    # forget to add newlines, if you need them.
+    def run_locally(stdin_text = nil, &block)
+      raise ArgumentError.new('block required') unless block_given?
+
+      cmd = block.call
+      # cmd = "echo '#{stdin_text}' | #{cmd}" if stdin_text
 
       raise "Unable to run_locally - fork method not useable" unless Process.respond_to? :fork
+
+      # preload stdin if there is input to avoid a race condition
+      if stdin_text
+        stdin_pipe, child_stdin = IO.pipe if stdin_text
+        count = child_stdin.write(stdin_text.to_s)
+        child_stdin.close
+      end
 
       child_stdout, stdout_pipe = IO.pipe
       child_stderr, stderr_pipe = IO.pipe
       unless (pid = Process.fork)
-        STDIN.close
+        if stdin_text
+          STDIN.reopen(stdin_pipe)
+        else
+          STDIN.close
+        end
         STDOUT.reopen(stdout_pipe)
         STDERR.reopen(stderr_pipe)
         begin
