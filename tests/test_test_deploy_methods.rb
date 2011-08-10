@@ -4,18 +4,11 @@ require 'tdd_deploy/environ'
 require 'tdd_deploy/run_methods'
 require 'tdd_deploy/deploy_test_methods'
 
-# ENV.each do |k, v|
-#   puts "#{k}: #{v}" if k =~ /SITE|HOST|LOCAL/
-# end
+# NOTES: These tests require a host to talk to. I run an Arch Linux server on my local
+# machine as a virtual host. Set up your own with appropriate accounts if you need to run
+# these tests.
 
 class  DeployTestMethodsTestCase < Test::Unit::TestCase
-  # def setup
-  #   ENV['HOST_ADMIN'] = 'mike'
-  #   ENV['LOCAL_ADMIN'] = 'mike'
-  #   ENV['LOCAL_ADMIN_EMAIL'] = 'mike@clove.com'
-  #   ENV['HOSTS'] = 'arch'
-  #   super
-  # end
   include TddDeploy::Environ
   include TddDeploy::RunMethods
   include TddDeploy::DeployTestMethods
@@ -23,7 +16,7 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
   def setup
     self.host_admin = 'mike'
     self.local_admin = 'mike'
-    self.hosts = 'arch,ubuntu'
+    self.hosts = 'arch'
     self.ssh_timeout = 2
   end
 
@@ -33,11 +26,11 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
     assert_equal 'local_admin', self.local_admin, "local_admin should be 'local_admin'"
     assert_equal 'local_admin@bogus.tld', self.local_admin_email, "local_admin_email should be 'local_admin@bogus.tld'"
 #    assert_equal 'hosts', self.hosts, "hosts should be 'arch'"
-    assert_equal ['foo', 'bar'], self.hosts, "hosts should be 'arch,ubuntu'"
+    assert_equal ['bar', 'foo'], self.hosts, "hosts should be 'bar,foo'"
   end
 
   def test_custom_env
-    self.reset_env 'host_admin' => 'mike', :local_admin => 'mike', :local_admin_email => 'mike@clove.com', :hosts => 'arch'
+    self.reset_env 'host_admin' => 'mike', :local_admin => 'mike', :local_admin_email => 'mike@clove.com'
     assert_equal 'mike', self.host_admin, "host_admin should be 'mike'"
     assert_equal 'mike', self.local_admin, "local_admin should be 'mike'"
     assert_equal 'mike@clove.com', self.local_admin_email, "local_admin_email should be 'mike@clove.com'"

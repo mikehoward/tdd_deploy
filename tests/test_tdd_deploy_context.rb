@@ -28,7 +28,7 @@ class TestSetEnvTestCase < Test::Unit::TestCase
     stdout, stderr, cmd = run_locally command do
       "ruby #{File.join(BIN_DIR, 'set_env.rb')}"
     end
-    assert_match /"frog"/, stdout, command
+    assert_match /"frog"/, stdout, "'frog' should be instdout"
     assert_match /abort/i, stderr, "std_env.rb generates abort error"
     refute_match /discard/i, stderr, "std_env.rb should not discard edits"
   end

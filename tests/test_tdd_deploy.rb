@@ -30,4 +30,5 @@ class TestTddDeployTestCase < Test::Unit::TestCase
       assert self.respond_to?("#{meth}".to_sym), "self should respond to #{meth}="
     end
   end
+  
 end

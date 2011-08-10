@@ -19,7 +19,7 @@ class TestEnvironTestCase < Test::Unit::TestCase
   
   def test_env_type
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
-    "site", "site_user", "hosts", "balance_hosts", "db_hosts", "web_hosts"].each do |sym|
+    "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |sym|
       assert self.class.env_types.keys.include?(sym.to_s), "#{self.class}#env_types.keys includes #{sym}"
     end
     ["ssh_timeout", "site_base_port", "site_num_servers"].each do |key|
@@ -28,21 +28,29 @@ class TestEnvironTestCase < Test::Unit::TestCase
     ["host_admin", "local_admin", "local_admin_email", "site", "site_user"].each do |key|
       assert_equal :string, self.class.env_types[key], "#{self.class}#env_types[#{key}] should be :string"
     end
-    ["hosts", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    ["balance_hosts", "db_hosts", "web_hosts"].each do |key|
       assert_equal :list, self.class.env_types[key], "#{self.class}#env_types[#{key}] should be :list"
     end
   end
   
+  def test_hosts_pseudokey
+    self.reset_env :web_hosts => '', :db_hosts => ''
+    assert_equal [], self.web_hosts, "assigning '' to web_hosts should create empty list"
+    assert_equal [], self.db_hosts, "assigning '' to db_hosts should create empty list"
+    self.reset_env :hosts => 'foo,bar'
+    assert_equal ['bar', 'foo'], self.hosts, "assigning foo,bar to hosts should create ['bar', 'foo']"
+  end
+  
   def test_env_hash
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
-    "site", "site_user", "hosts", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
       assert_not_nil self.class.env_hash[key], "self.class.env_hash[#{key}] should not be nil"
     end
   end
   
   def test_env_defaults
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
-    "site", "site_user", "hosts", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
       assert_not_nil self.class.env_defaults[key], "self.class.env_defaults[#{key}] should not be nil"
     end
   end
@@ -54,7 +62,7 @@ class TestEnvironTestCase < Test::Unit::TestCase
     "site", "site_user"].each do |key|    
       assert_equal self.class.env_defaults[key], self.env_hash[key], "self.env_hash[#{key}] has proper value"
     end
-    ["hosts", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    ["balance_hosts", "db_hosts", "web_hosts"].each do |key|
       assert self.env_hash[key].is_a?(Array), "self.env_hash[#{key}] is an Array"
       assert_equal self.class.env_defaults[key], self.env_hash[key].join(','), "self.env_hash[#{key}] matches default"
     end
@@ -75,7 +83,7 @@ class TestEnvironTestCase < Test::Unit::TestCase
       self.send "#{key}=", tmp
       assert_equal tmp, self.send(key.to_sym), "#{self.class}##{key} should now be #{tmp}"
     end
-    ["hosts", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    ["balance_hosts", "db_hosts", "web_hosts"].each do |key|
       tmp = self.send(key.to_sym).join(',') + ',new,values'
       self.send "#{key}=", tmp
       assert_equal tmp.split(/,/), self.send(key.to_sym), "#{self.class}##{key} should now be #{tmp}"

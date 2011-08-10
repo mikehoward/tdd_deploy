@@ -63,7 +63,16 @@ module TddDeploy
           when :string then @env_hash[k] = v.to_s
           when :list then @env_hash[k] = self.str_to_list(v)
           else
-            raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
+            if k == 'hosts'
+              if @env_hash['web_hosts'] == @env_hash['db_hosts']
+                @env_hash['web_hosts'] =
+                  @env_hash['db_hosts'] = self.str_to_list(v)
+              else
+                raise RuntimeError.new("#{self}#reset_env(): Cannot change hosts key if web_hosts != db_hosts")
+              end
+            else
+              raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
+            end
           end
         end
       end
@@ -108,7 +117,8 @@ module TddDeploy
       end
       
       def list_to_str key
-        (tmp = self.env_hash[key]).is_a?(Array) ? tmp.join(',') : tmp.to_s
+        tmp = self.env_hash[key]
+        tmp.is_a?(Array) ? tmp.join(',') : tmp.to_s
       end
 
       # saves the current environment in the current working directory in the file
@@ -120,7 +130,8 @@ module TddDeploy
           case self.env_types[k]
           when :int then f.write "#{k}=#{v}\n"
           when :string then f.write "#{k}=#{v}\n"
-          when :list then f.write "#{k}=#{self.list_to_str(v)}\n"
+          when :list then
+            f.write "#{k}=#{self.list_to_str(k)}\n" unless k == 'hosts'
           else
             raise RuntimeError("unknown key: #{k}")
           end
@@ -169,7 +180,7 @@ module TddDeploy
       'site' => :string,
       'site_user' => :string,
 
-      'hosts' => :list,
+      # 'hosts' => :list,
       'balance_hosts' => :list,
       'db_hosts' => :list,
       'web_hosts' => :list,
@@ -186,10 +197,10 @@ module TddDeploy
       'site' => "site",
       'site_user' => "site_user",
 
-      'hosts' => "bar,foo",
+      # 'hosts' => "bar,foo",
       'balance_hosts' => '',
-      'db_hosts' => '',
-      'web_hosts' => '',
+      'db_hosts' => 'bar,foo',
+      'web_hosts' => 'bar,foo',
     }
     self.env_hash = {}
     # create accessors
@@ -216,13 +227,26 @@ module TddDeploy
       when :list
         tmp +=<<-EOF
         def #{k}=(v)
-          self.env_hash['#{k}'] = self.str_to_list(v)
+         self.env_hash['#{k}'] = self.str_to_list(v)
         end
         EOF
       end
     end
 
     class_eval tmp
+
+    def hosts
+      (self.web_hosts.to_a + self.db_hosts.to_a + self.balance_hosts.to_a).uniq.sort
+    end
+    
+    def hosts=(list)
+      if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
+        self.web_hosts =
+          self.db_hosts = self.class.str_to_list(list)
+      else
+        raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set:\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
+      end
+    end
 
     read_env || reset_env(self.env_defaults)
   end

@@ -1,3 +1,5 @@
+# require 'test/unit'
+
 module TddDeploy
   module DeployTestMethods
     # deploy_test_on_all_hosts runs the command(s) return by '&block' on all hosts in self.hosts
