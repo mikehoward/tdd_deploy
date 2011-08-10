@@ -18,8 +18,9 @@ Gem::Specification.new do |s|
     lib/tdd_deploy.rb
     lib/tdd_deploy/deploy_test_methods.rb
     lib/tdd_deploy/environ.rb
-    lib/tdd/run_methods.rb
+    lib/tdd_deploy/run_methods.rb
     lib/tdd_deploy_tests/*
+    lib/active_support/concern.rb
     
     tests/test_environ.rb
     tests/test_helpers.rb
@@ -34,6 +35,12 @@ Gem::Specification.new do |s|
     s.rubygems_version = %q{ 1.6.2 }
     
     s.add_dependency(
-    # FIXME!!!!!
+    gem 'ZenTest', "~> 4.5.0"
+    # gem 'redgreen'
+    gem 'autotest-growl'
+    gem 'activesupport'
+
+    gem 'capistrano'
+    gem 'net-ping'
     )
 end

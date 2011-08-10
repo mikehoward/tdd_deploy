@@ -6,8 +6,5 @@ gem 'autotest-growl'
 gem 'activesupport'
 
 gem 'capistrano'
-
-# group :test do
-  gem 'net-ping'
-# end
+gem 'net-ping'
 
