@@ -78,9 +78,13 @@ module TddDeploy
         end
       end
       
+      def clear_env
+        @env_hash = {}
+      end
+      
       # reset_env resets env_hash to env_defaults
       def reset_env
-        @env_hash = nil
+        clear_env
         set_env self.env_defaults
       end
 
@@ -159,7 +163,8 @@ module TddDeploy
       # raises ArgumentError if value not a Hash or a supplied key is incorrect
       def env_hash=(value)
         raise ArgumentError.new("env_hash must be a Hash") unless value.is_a? Hash
-        self.class.reset_env(value)
+        self.class.clear_env
+        self.class.set_env(value)
       end
 
       # drags in all class methods as instance methods which delegate to corresponding class methods
@@ -210,6 +215,7 @@ module TddDeploy
       'web_hosts' => 'bar,foo',
     }
     self.env_hash = {}
+    
     # create accessors
     tmp = ''
     env_types.each do |k, t|
@@ -255,7 +261,7 @@ module TddDeploy
       end
     end
 
-    read_env || reset_env(self.env_defaults)
+    read_env || reset_env
   end
   end
 end
