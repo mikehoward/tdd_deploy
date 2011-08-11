@@ -1,4 +1,4 @@
-# require 'test/unit'
+require 'test/unit'
 
 module TddDeploy
   module DeployTestMethods

@@ -52,9 +52,9 @@ module TddDeploy
     
       # set up all the standard accessors
 
-      # reset_env(value_hash {}) - convenience method which sets values of the environment
+      # set_env(value_hash {}) - convenience method which sets values of the environment
       # hash using a hash rather than one-at-a-time
-      def reset_env(value_hash = {})
+      def set_env(value_hash = {})
         @env_hash ||= {}
         value_hash.each do |k, v|
           k = k.to_s
@@ -68,13 +68,20 @@ module TddDeploy
                 @env_hash['web_hosts'] =
                   @env_hash['db_hosts'] = self.str_to_list(v)
               else
-                raise RuntimeError.new("#{self}#reset_env(): Cannot change hosts key if web_hosts != db_hosts")
+                raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{@env_hash['web_hosts']}\n db_hosts: #{@env_hash['db_hosts']}")
+                # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
               end
             else
               raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
             end
           end
         end
+      end
+      
+      # reset_env resets env_hash to env_defaults
+      def reset_env
+        @env_hash = nil
+        set_env self.env_defaults
       end
 
       # reads the environment from TddDeploy::Environ::ENV_FNAME (site_host_setup.env) if the file exists
@@ -97,7 +104,7 @@ module TddDeploy
             return self.env_hash
           elsif dir_path.length <= 1
             # reached root level, so initialize to defaults and exit
-            reset_env self.env_defaults
+            reset_env
             return @env_hash
           else
             # move to parent directory
@@ -244,7 +251,7 @@ module TddDeploy
         self.web_hosts =
           self.db_hosts = self.class.str_to_list(list)
       else
-        raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set:\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
+        raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
       end
     end
 

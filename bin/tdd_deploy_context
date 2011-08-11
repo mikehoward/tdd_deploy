@@ -1,18 +1,20 @@
-#! /usr/bin/env ruby
+#!/usr/bin/env ruby
 
-$:.unshift File.expand_path('../../lib', __FILE__)
-
-require 'tdd_deploy'
-require 'curses'
+require 'bundler/setup'
+tdd_lib_path = File.expand_path('../../lib', __FILE__)
+unless $:.include? tdd_lib_path
+  $:.unshift tdd_lib_path
+end
+require 'tdd_deploy/environ'
+# require 'curses'
 
 class TddDeployEnv
-  include TddDeploy
+  include TddDeploy::Environ
 
   attr_accessor :modified
 
   def show_env
     puts "============================================="
-    self.flash
     self.class.env_types.keys.each do |k|
       v = self.send(k.to_sym)
       printf "%-20s: %s\n", k, v
@@ -20,6 +22,8 @@ class TddDeployEnv
     if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
       printf "\n\nSpecial Key\n%-20s: %s\n", 'hosts', self.hosts, "set 'hosts' to set both web & db hosts"
     end
+    puts "\nModified & Not Saved: #{self.modified.join(', ')}\n" if self.modified
+    self.flash
     "(Env Key OR S[ave] to Save OR Q[uit] Quit + Save OR E[xit] to quit w/o Saving)\n? "
   end
 
@@ -27,12 +31,18 @@ class TddDeployEnv
     self.modified
   end
   
+  def add_to_modified *args
+    @modified ||= []
+    @modified += args
+  end
+  
   def flash=(value)
-    @flash = value
+    @flash ||= ''
+    @flash += "#{value}\n"
   end
   
   def flash
-    puts "\nNOTICE: #{@flash}\n" if @flash
+    puts "\n#{@flash}\n\n" if @flash
     @flash = nil
   end
   
@@ -40,8 +50,6 @@ class TddDeployEnv
     if self.modified?
       self.flash = 'Updates Saved'
       self.save_env
-    else
-      self.flash = 'Nothing to Save'
     end
     self.modified = false
   end
@@ -49,7 +57,7 @@ class TddDeployEnv
   def parse_cmd(cmd)
     puts cmd
     unless cmd =~ /^\s*(\w+)(\s+.*?)\s*$/i
-      self.flash = "unable to parse command: '#{cmd}'"
+      self.flash = "unable to parse command: '#{cmd}'" unless cmd.strip.empty?
       return
     end
     
@@ -68,13 +76,14 @@ class TddDeployEnv
       if key_prefix == 'hosts'
         self.hosts = param_value
         self.flash = "Set hosts to '#{param_value}'"
+        self.add_to_modified('hosts', 'web_hosts', 'db_hosts')
       else
         self.flash = "No environment variable matches #{key_prefix}"
       end
     when 1
       key = matching_keys.first
       self.send "#{key}=".to_sym, param_value
-      self.modified = true
+      self.add_to_modified(key)
       self.flash = "#{key} updated"
     else
       self.flash = "ambiguous match: #{matching_keys.join(', ')}"
@@ -90,7 +99,7 @@ begin
   
   if STDIN.eof?
     STDERR.write "Unexpected End of Input - aborting"
-    STDERR.write " - Discarding Unsaved Edits" if tdd_deploy_env.modified?
+    STDERR.write " - Discarded Unsaved Edits [#{tdd_deploy_env.modified.join(', ')}]" if tdd_deploy_env.modified?
     STDERR.write "\n"
     STDERR.flush
     break
@@ -100,11 +109,13 @@ begin
   
   if cmd =~ /^q(uit)?$/i
     tdd_deploy_env.save
+    tdd_deploy_env.flash = 'Quit Entered'
     break
   elsif cmd =~ /^s(ave)?$/i
     tdd_deploy_env.save
   elsif cmd =~ /^e(xit)?$/i
-    self.flash = 'Discarding Edits' if tdd_deploy_env.modified?
+    tdd_deploy_env.flash = "Exit Entered"
+    tdd_deploy_env.flash = "Discarded Edits [#{tdd_deploy_env.modified.join(', ')}]" if tdd_deploy_env.modified?
     break
   else
     tdd_deploy_env.parse_cmd(cmd)

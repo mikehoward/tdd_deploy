@@ -8,9 +8,8 @@ class RunMethodsTestCase < Test::Unit::TestCase
   include TddDeploy::RunMethods
 
   def setup
-    self.hosts = 'arch,ubuntu'
-    self.host_admin = 'mike'
-    self.ssh_timeout = 2
+    self.reset_env
+    self.set_env :hosts => 'arch,ubuntu', :host_admin => 'mike', :ssh_timeout => 2
   end
   
   def test_run_in_ssh_session_as

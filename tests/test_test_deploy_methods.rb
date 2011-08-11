@@ -14,14 +14,13 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
   include TddDeploy::DeployTestMethods
 
   def setup
-    self.host_admin = 'mike'
-    self.local_admin = 'mike'
-    self.hosts = 'arch'
-    self.ssh_timeout = 2
+    self.reset_env
+    self.set_env({ :host_admin => 'mike', :local_admin => 'mike', :db_hosts => 'arch', 
+        :web_hosts => 'arch', :ssh_timeout => 2 })
   end
 
   def test_default_env
-    self.reset_env(self.env_defaults)
+    self.reset_env
     assert_equal 'host_admin', self.host_admin, "host_admin should be 'host_admin'"
     assert_equal 'local_admin', self.local_admin, "local_admin should be 'local_admin'"
     assert_equal 'local_admin@bogus.tld', self.local_admin_email, "local_admin_email should be 'local_admin@bogus.tld'"
@@ -30,7 +29,7 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
   end
 
   def test_custom_env
-    self.reset_env 'host_admin' => 'mike', :local_admin => 'mike', :local_admin_email => 'mike@clove.com'
+    self.set_env 'host_admin' => 'mike', :local_admin => 'mike', :local_admin_email => 'mike@clove.com'
     assert_equal 'mike', self.host_admin, "host_admin should be 'mike'"
     assert_equal 'mike', self.local_admin, "local_admin should be 'mike'"
     assert_equal 'mike@clove.com', self.local_admin_email, "local_admin_email should be 'mike@clove.com'"

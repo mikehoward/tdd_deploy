@@ -8,7 +8,7 @@ class TestEnvironTestCase < Test::Unit::TestCase
   include TddDeploy::Environ
 
   def setup
-    self.class.reset_env(self.class.env_defaults)
+    self.class.reset_env
   end
 
   def test_class_variable_assessors
@@ -34,10 +34,10 @@ class TestEnvironTestCase < Test::Unit::TestCase
   end
   
   def test_hosts_pseudokey
-    self.reset_env :web_hosts => '', :db_hosts => ''
+    self.set_env :web_hosts => '', :db_hosts => ''
     assert_equal [], self.web_hosts, "assigning '' to web_hosts should create empty list"
     assert_equal [], self.db_hosts, "assigning '' to db_hosts should create empty list"
-    self.reset_env :hosts => 'foo,bar'
+    self.set_env :hosts => 'foo,bar'
     assert_equal ['bar', 'foo'], self.hosts, "assigning foo,bar to hosts should create ['bar', 'foo']"
   end
   
@@ -92,14 +92,14 @@ class TestEnvironTestCase < Test::Unit::TestCase
   
   def test_class_level_reset_env
     tmp = self.class.env_hash['ssh_timeout']
-    self.class.reset_env 'ssh_timeout' => 12
+    self.class.set_env 'ssh_timeout' => 12
     assert_equal 12, self.class.env_hash['ssh_timeout'], "reset_env should change env_hash"
     assert_equal 12, self.ssh_timeout, "reset_env change should show up in instance method"
   end
   
   def test_instance_level_reset_env
     tmp = self.class.env_hash['ssh_timeout']
-    self.reset_env 'ssh_timeout' => 12
+    self.set_env 'ssh_timeout' => 12
     assert_equal 12, self.class.env_hash['ssh_timeout'], "reset_env should change env_hash"
     assert_equal 12, self.ssh_timeout, "reset_env change should show up in instance method"
   end

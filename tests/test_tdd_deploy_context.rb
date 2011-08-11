@@ -17,18 +17,19 @@ class TestSetEnvTestCase < Test::Unit::TestCase
   
   def test_run_env_rb
     stdout, stderr, cmd = run_locally 'quit' do
-      "ruby #{File.join(BIN_DIR, 'tdd_deploy_context')}"
+      "#{File.join(BIN_DIR, 'tdd_deploy_context')}"
     end
-    assert_not_nil stdout, "tdd_deploy_context is runable"
+    assert_not_nil stdout, "tdd_deploy_context is runable. stderr: #{stderr}"
     assert_nil stderr, "tdd_deploy_context does not generate errors"
   end
   
   def test_changin_env
-    command = "hosts frog toad turtle\nssh_timeout 12\nsave\n"
+    command = "web_hosts frog toad turtle\nssh_timeout 12\nsave\n"
     stdout, stderr, cmd = run_locally command do
-      "ruby #{File.join(BIN_DIR, 'tdd_deploy_context')}"
+      "#{File.join(BIN_DIR, 'tdd_deploy_context')}"
     end
-    assert_match /"frog"/, stdout, "'frog' should be instdout"
+    assert_not_nil stdout, "successful run should not be nil: stderr: #{stderr}"
+    assert_match /"frog"/, stdout, "'frog' should be in stdout"
     assert_match /abort/i, stderr, "tdd_deploy_context generates abort error"
     refute_match /discard/i, stderr, "tdd_deploy_context should not discard edits"
   end

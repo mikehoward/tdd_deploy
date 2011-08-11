@@ -9,6 +9,9 @@ class TestTddDeployTestCase < Test::Unit::TestCase
   # puts "self: #{self}"
   # puts "self.public_methods: #{self.public_methods(false).sort}"
   # puts "self.instance_methods: #{self.instance_methods.sort}"
+  def setup
+    self.reset_env
+  end
   
   def test_exsistence_of_public_methods
     [:reset_env, :read_env, :reset_env].each do |meth|
