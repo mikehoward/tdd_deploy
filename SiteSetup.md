@@ -104,5 +104,7 @@ thin config file:
 
 ### create .monitrc file to manage thin server
 
-    TBD - Steal this from Mike Clark's recipies book
+    TBD - Steal this from Mike Clark's recipes book
+    
+    
     
