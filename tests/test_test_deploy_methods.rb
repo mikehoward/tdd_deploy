@@ -8,15 +8,25 @@ require 'tdd_deploy/deploy_test_methods'
 # machine as a virtual host. Set up your own with appropriate accounts if you need to run
 # these tests.
 
-class  DeployTestMethodsTestCase < Test::Unit::TestCase
+class DeployTester
   include TddDeploy::Environ
   include TddDeploy::RunMethods
   include TddDeploy::DeployTestMethods
+  
+  def initialize env_hash
+    self.reset_env
+    self.set_env env_hash
+  end
+end
+
+class  DeployTestMethodsTestCase < Test::Unit::TestCase
+  include TddDeploy::Environ
 
   def setup
     self.reset_env
     self.set_env({ :host_admin => 'mike', :local_admin => 'mike', :db_hosts => 'arch', 
         :web_hosts => 'arch', :ssh_timeout => 2 })
+    @tester = DeployTester.new self.env_hash
   end
 
   def test_default_env
@@ -35,39 +45,46 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
     assert_equal 'mike@clove.com', self.local_admin_email, "local_admin_email should be 'mike@clove.com'"
     assert_equal ['arch'], self.hosts, "hosts should be 'arch'"
   end
+  
+  def test_force_failure
+    result = @tester.deploy_test_in_ssh_session_as 'no-user', self.hosts.first, '/home/no-user', 'should fail with bad user' do
+      'pwd'
+    end
+    refute result, "refute version: should fail with bad userid #{result}"
+  end
 
   def test_deploy_test_in_ssh_session_as
     assert_raises ArgumentError do
-      deploy_test_in_ssh_session_as 'root', self.hosts.first, '', 'session catches empty match expression' do
+      @tester.deploy_test_in_ssh_session_as 'root', self.hosts.first, '', 'session catches empty match expression' do
         'uname -a'
       end
     end
 
-    assert_raises ::MiniTest::Assertion do
-      deploy_test_in_ssh_session_as 'root', self.hosts.first, 'no-file-exists', 'generate an error' do
+    assert_raises  do
+      @tester.deploy_test_in_ssh_session_as 'root', self.hosts.first, 'no-file-exists', 'generate an error' do
         'ls /usr/no-file-exists'
       end
     end
 
-    deploy_test_in_ssh_session_as 'root', self.hosts.first, "/root", 'can\'t run on host' do
+    @tester.deploy_test_in_ssh_session_as 'root', self.hosts.first, "/root", 'can\'t run on host' do
       'pwd'
     end
   end
 
   def test_deploy_test_in_ssh_session
-    deploy_test_in_ssh_session self.hosts.first, "/home/#{self.host_admin}", "can't run as #{self.host_admin} on host" do
+    @tester.deploy_test_in_ssh_session self.hosts.first, "/home/#{self.host_admin}", "can't run as #{self.host_admin} on host" do
       'pwd'
     end
   end
 
   def test_deploy_test_on_all_hosts_as
-    deploy_test_on_all_hosts_as 'root', '/root', "can't run as root on all hosts" do
+    @tester.deploy_test_on_all_hosts_as 'root', '/root', "can't run as root on all hosts" do
       'pwd'
     end
   end
 
   def test_deploy_test_on_all_hosts
-    deploy_test_on_all_hosts "/home/#{self.host_admin}", 'can\'t run on some hosts' do
+    @tester.deploy_test_on_all_hosts "/home/#{self.host_admin}", 'can\'t run on some hosts' do
       'pwd'
     end
   end

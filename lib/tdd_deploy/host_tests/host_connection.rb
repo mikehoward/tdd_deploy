@@ -6,14 +6,16 @@ module TddDeploy
   class HostConnection
     include TddDeploy::Environ
     include TddDeploy::Assertions
+    include TddDeploy::DeployTestMethods
     
     def ping
       require 'net/ping'
 puts "self.hosts: #{self.hosts.inspect}"
       self.hosts.each do |host|
   puts "Tdd:Deploy#ping testing #{host}"
-        assert Net::Ping::External.new(host).ping?, "Host #{host} should respond to ping"
+        return false unless assert Net::Ping::External.new(host).ping?, "Host #{host} should respond to ping"
        end
+       
     end
 
     def ssh_login

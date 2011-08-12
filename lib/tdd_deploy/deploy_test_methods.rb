@@ -1,7 +1,11 @@
-require 'test/unit'
+require 'tdd_deploy/assertions'
+require 'tdd_deploy/run_methods'
 
 module TddDeploy
   module DeployTestMethods
+    include TddDeploy::Assertions
+    include TddDeploy::RunMethods
+    
     # deploy_test_on_all_hosts runs the command(s) return by '&block' on all hosts in self.hosts
     # as user 'self.host_admin'.
     # For each host, an error is declared if EITHER STDOUT does not match 'match_expr_or_str'
@@ -17,9 +21,11 @@ module TddDeploy
     # OR if the command returns anything on STDERR.
     # 'match_expr_or_str' can be a Regexp or a string (which will be converted to a Regexp)
     def deploy_test_on_all_hosts_as(userid, match_expr_or_str, err_msg, &block)
+      ret = true
       self.hosts.each do |host|
-        deploy_test_in_ssh_session_as userid, host, match_expr_or_str, err_msg, &block
+        ret &= deploy_test_in_ssh_session_as userid, host, match_expr_or_str, err_msg, &block
       end
+      ret
     end
 
     # deploy_test_in_ssh_session host, match_exp_or_string, err_msg, &block runs the command
@@ -40,12 +46,14 @@ module TddDeploy
 
       rsp, err_rsp, cmd = run_in_ssh_session_as(userid, host, &block)
 
-      flunk "Host: #{host}: command generated error data:\n" +
+      fail "Host: #{host}: command generated error data:\n" +
         "  command: #{cmd}\n rsp: '#{rsp}'\n err rsp: '#{err_rsp}'" if err_rsp
 
-      refute_nil rsp, "Host: #{host}: stdout is empty for command '#{cmd}'"
+      assert_not_nil rsp, "Host: #{host}: stdout is empty for command '#{cmd}'"
 
       assert_match match, rsp, "Host: #{host}: #{err_msg}\n rsp: #{rsp}"
+      
+      self.failure_count == 0
     end
   end
 end

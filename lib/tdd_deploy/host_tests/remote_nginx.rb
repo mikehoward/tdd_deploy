@@ -1,18 +1,23 @@
-$:.unshift File.expand_path('../..', __FILE__)
+require 'test/unit'
+require 'tdd_deploy/environ'
+require 'tdd_deploy/assertions'
 
-require 'test_helpers'
+module TddDeploy
+  class RemoteNginx
+    include TddDeploy::Environ
+    include TddDeploy::Assertions
+    include TddDeploy::DeployTestMethods
 
-class TestRemoteNginx < HostTestCase
-
-  def test_nginx_installed
-    deploy_test_on_all_hosts '/usr/sbin/nginx', "nginx is not installed" do
-      'ls /usr/sbin/nginx'
+    def test_nginx_installed
+      deploy_test_on_all_hosts '/usr/sbin/nginx', "nginx is not installed" do
+        'ls /usr/sbin/nginx'
+      end
     end
-  end
 
-  def test_nginx_running
-    deploy_test_on_all_hosts /\snginx\s/, "nginx is not running" do
-      'ps -p `cat /var/run/nginx.pid`'
+    def test_nginx_running
+      deploy_test_on_all_hosts /\snginx\s/, "nginx is not running" do
+        'ps -p `cat /var/run/nginx.pid`'
+      end
     end
   end
 end

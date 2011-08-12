@@ -11,13 +11,21 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
   def setup
     @assertion_helper = AssertionHelper.new
   end
-
+  
   def test_assert
     assert @assertion_helper.assert(true, 'true is true')
+    stdout, stderr = capture_io do
+      @assertion_helper.announce_test_results
+    end
+    assert_match /All Tests Passed/i, stdout, "announcement should include 1 Failure"
   end
   
   def test_assert_equal
     assert @assertion_helper.assert_equal(true, true, "true is still true"), "true is true"
+  end
+  
+  def test_assert_match
+    assert @assertion_helper.assert_match('^foo$', 'foo', 'foo is not bar'), 'foo is not bar'
   end
   
   def test_assert_nil
@@ -40,4 +48,15 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
     assert @assertion_helper.refute_equal(false, true, "false is not true"), "false is not true"
   end
   
+  def test_fail
+    refute @assertion_helper.fail('fail returns false'), 'fail returns false'
+  end
+  
+  def test_announcement
+    refute @assertion_helper.assert(false, 'forcing a failure'), 'forcing a failure'
+    stdout, stderr = capture_io do
+      @assertion_helper.announce_test_results
+    end
+    assert_match /1 Failed/, stdout, "announcement should include 1 Failure"
+  end
 end
