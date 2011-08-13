@@ -1,13 +1,7 @@
-require 'test/unit'
-require 'tdd_deploy/environ'
-require 'tdd_deploy/assertions'
+require 'tdd_deploy/base'
 
 module TddDeploy
-  class RemoteMonit
-    include TddDeploy::Environ
-    include TddDeploy::Assertions
-    include TddDeploy::DeployTestMethods
-
+  class RemoteMonit < TddDeploy::Base
     def test_monit_installed
       deploy_test_on_all_hosts '/usr/bin/monit', "monit is not installed" do
        'ls /usr/bin/monit'

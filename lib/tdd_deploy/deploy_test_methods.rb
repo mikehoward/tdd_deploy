@@ -46,14 +46,16 @@ module TddDeploy
 
       rsp, err_rsp, cmd = run_in_ssh_session_as(userid, host, &block)
 
+      result = err_rsp.nil?
+
       fail "Host: #{host}: command generated error data:\n" +
         "  command: #{cmd}\n rsp: '#{rsp}'\n err rsp: '#{err_rsp}'" if err_rsp
 
-      assert_not_nil rsp, "Host: #{host}: stdout is empty for command '#{cmd}'"
+      result &= assert_not_nil rsp, "Host: #{host}: stdout is empty for command '#{cmd}'"
 
-      assert_match match, rsp, "Host: #{host}: #{err_msg}\n rsp: #{rsp}"
+      result &= assert_match match, rsp, "Host: #{host}: #{err_msg}\n rsp: #{rsp}"
       
-      self.failure_count == 0
+      result
     end
   end
 end

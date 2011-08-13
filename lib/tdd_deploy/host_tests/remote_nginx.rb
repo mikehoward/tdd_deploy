@@ -1,13 +1,7 @@
-require 'test/unit'
-require 'tdd_deploy/environ'
-require 'tdd_deploy/assertions'
+require 'tdd_deploy/base'
 
 module TddDeploy
-  class RemoteNginx
-    include TddDeploy::Environ
-    include TddDeploy::Assertions
-    include TddDeploy::DeployTestMethods
-
+  class RemoteNginx < TddDeploy::Base
     def test_nginx_installed
       deploy_test_on_all_hosts '/usr/sbin/nginx', "nginx is not installed" do
         'ls /usr/sbin/nginx'

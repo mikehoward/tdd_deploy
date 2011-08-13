@@ -3,8 +3,9 @@
 
 module TddDeploy
   module Assertions
+    # failure statistics
     def failure_count
-      @failure_count || 0
+      @failure_count ||= 0
     end
 
     def failure_count=(value = 1)
@@ -17,6 +18,22 @@ module TddDeploy
       @failure_messages ||= []
     end
 
+    def announce_test_results
+      if self.failure_count > 0
+        puts "#{self.failure_count} Failed Tests"
+        puts self.failure_messages
+      else
+        puts "All tests passed: #{caller}"
+      end
+      self.clear_failure_stats
+    end
+    
+    def clear_failure_stats
+      @failure_messages = []
+      @failure_count = 0
+    end
+
+    # Assertions
     def assert predicate, msg = nil
       assert_primative predicate, msg
     end
@@ -61,15 +78,6 @@ module TddDeploy
 
     def fail msg = nil
       assert_primative false, msg
-    end
-
-    def announce_test_results
-      if self.failure_count > 0
-        puts "#{self.failure_count} Failed Tests"
-        puts self.failure_messages
-      else
-        puts "All tests passed"
-      end
     end
 
     private

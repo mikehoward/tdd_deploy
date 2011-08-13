@@ -15,7 +15,7 @@ class TddDeployEnv
 
   def show_env
     puts "============================================="
-    self.class.env_types.keys.each do |k|
+    self.env_types.keys.each do |k|
       v = self.send(k.to_sym)
       printf "%-20s: %s\n", k, v
     end
@@ -65,7 +65,7 @@ class TddDeployEnv
     param_value = $2.strip
 
     key_regx = Regexp.new('^' + key_prefix, Regexp::IGNORECASE)
-    matching_keys = self.class.env_types.keys.select { |k| key_regx.match(k) }
+    matching_keys = self.env_types.keys.select { |k| key_regx.match(k) }
 
     if matching_keys.size > 1 && matching_keys.include?(key_prefix)
       matching_keys = [key_prefix]

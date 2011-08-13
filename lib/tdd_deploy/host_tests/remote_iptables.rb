@@ -1,13 +1,7 @@
-require 'test/unit'
-require 'tdd_deploy/environ'
-require 'tdd_deploy/assertions'
+require 'tdd_deploy/base'
 
 module TddDeploy
-  class IpTables
-    include TddDeploy::Environ
-    include TddDeploy::Assertions
-    include TddDeploy::DeployTestMethods
-
+  class IpTables < TddDeploy::Base
     def tcp_some_blocked_ports
       self.hosts.each do |host|
         # Linode seems to refuse to block 21 - FTP control

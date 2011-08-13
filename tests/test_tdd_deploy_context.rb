@@ -23,7 +23,7 @@ class TestSetEnvTestCase < Test::Unit::TestCase
     assert_nil stderr, "tdd_deploy_context does not generate errors"
   end
   
-  def test_changin_env
+  def test_changing_env
     command = "web_hosts frog toad turtle\nssh_timeout 12\nsave\n"
     stdout, stderr, cmd = run_locally command do
       "#{File.join(BIN_DIR, 'tdd_deploy_context')}"

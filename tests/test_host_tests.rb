@@ -1,8 +1,5 @@
 $:.unshift File.expand_path('..', __FILE__)
 require 'test_helpers'
-require 'tdd_deploy/environ'
-require 'tdd_deploy/run_methods'
-require 'tdd_deploy/deploy_test_methods'
 require 'tdd_deploy/host_tests/host_connection'
 
 # NOTES: These tests require a host to talk to. I run an Arch Linux server on my local
@@ -10,23 +7,25 @@ require 'tdd_deploy/host_tests/host_connection'
 # these tests.
 
 class  HostTestsTestCase < Test::Unit::TestCase
-  include TddDeploy::Environ
-  # include TddDeploy::HostConnection
-
   def setup
-    self.reset_env
-    self.set_env :hosts => 'arch', :host_admin => 'mike', :local_admin => 'mike'
-    @host_tester = TddDeploy::HostConnection.new
+    @tester = TddDeploy::HostConnection.new
+    @tester.reset_env
+    @tester.set_env :web_hosts => 'arch', :db_hosts => 'arch', :host_admin => 'mike', :local_admin => 'mike'
+  end
+  
+  def teardown
+    @tester = nil
   end
 
   def test_ping
-puts "@host_tester: #{@host_tester}"
-ping_method = @host_tester.method :ping
-puts "arity of ping: #{ping_method.arity}"
-    @host_tester.ping
+    assert @tester.ping, "Can ping #{@tester.hosts.join(',')}"
   end
   
   def test_ssh_login
-    @host_tester.ssh_login
+    assert @tester.ssh_login, "Can login #{@tester.hosts.join(',')} as #{@tester.host_admin}"
+  end
+  
+  def test_ssh_login_as_root
+    assert @tester.ssh_login_as_root, "Can login to #{@tester.hosts.join(',')} as root"
   end
 end

@@ -1,25 +1,24 @@
-require 'test/unit'
-require 'tdd_deploy/environ'
-require 'tdd_deploy/assertions'
+require 'tdd_deploy/base'
 
 module TddDeploy
-  class HostConnection
-    include TddDeploy::Environ
-    include TddDeploy::Assertions
-    include TddDeploy::DeployTestMethods
-    
+  class HostConnection < TddDeploy::Base
     def ping
       require 'net/ping'
-puts "self.hosts: #{self.hosts.inspect}"
+      result = true
       self.hosts.each do |host|
-  puts "Tdd:Deploy#ping testing #{host}"
-        return false unless assert Net::Ping::External.new(host).ping?, "Host #{host} should respond to ping"
+        result &= assert Net::Ping::External.new(host).ping?, "Host #{host} should respond to ping"
        end
-       
+       result
     end
 
     def ssh_login
       deploy_test_on_all_hosts "/home/#{self.host_admin}\n", "unable to connect via ssh" do
+        'pwd'
+      end
+    end
+    
+    def ssh_login_as_root
+      deploy_test_on_all_hosts_as 'root', '/root', "unable to connect as root via ssh" do
         'pwd'
       end
     end

@@ -15,13 +15,13 @@ class TestTddDeployTestCase < Test::Unit::TestCase
   
   def test_exsistence_of_public_methods
     [:reset_env, :read_env, :reset_env].each do |meth|
-      assert self.class.respond_to?(meth), "self.class should respond to #{meth}"
+      assert self.respond_to?(meth), "self.class should respond to #{meth}"
     end
   end
-  def test_response_to_class_accessors
+  def test_response_to_accessors
     [:env_hash, :env_defaults, :env_types].each do |meth|
-      assert self.class.respond_to?("#{meth}=".to_sym), "self.class should respond to #{meth}="
-      refute_nil self.class.send(meth), "self.class.#{meth} should not be nil"
+      assert self.respond_to?("#{meth}=".to_sym), "self.class should respond to #{meth}="
+      refute_nil self.send(meth), "self.class.#{meth} should not be nil"
     end
   end
   
