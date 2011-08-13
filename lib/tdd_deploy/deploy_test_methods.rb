@@ -55,6 +55,8 @@ module TddDeploy
 
       result &= assert_match match, rsp, "Host: #{host}: #{err_msg}\n rsp: #{rsp}"
       
+      self.announce_test_results unless result
+
       result
     end
   end
