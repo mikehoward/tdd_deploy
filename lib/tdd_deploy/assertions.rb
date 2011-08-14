@@ -11,18 +11,18 @@ module TddDeploy
     def failure_count=(value = 1)
       @failure_count ||= 0
       value = value.to_int > 0 ? value.to_int : 1
-      @failure_count += value
+      @failure_count = value
     end
     
     def failure_messages
       @failure_messages ||= []
     end
 
-    def announce_test_results
+    def announce_test_results verbose = false
       if self.failure_count > 0
         puts "#{self.failure_count} Failed Tests"
-        puts self.failure_messages
-      else
+        puts self.failure_messages.join("\n\n")
+      elsif verbose
         puts "All tests passed: #{caller}"
       end
       self.clear_failure_stats
@@ -84,15 +84,9 @@ module TddDeploy
     def assert_primative predicate, msg = nil, caller_arg = 2
       unless predicate
         augmented_message = msg ? msg : "assertion failed"
-        # unless augmented_message.instance_of? String
-        #   caller.each do |s|
-        #     puts s
-        #   end
-        # end
         augmented_message += "\nCalled from: #{caller(caller_arg).first}"
         self.failure_messages.push augmented_message
         self.failure_count += 1
-        # puts augmented_message
         false
       else
         STDOUT.write('.') ; STDOUT.flush
