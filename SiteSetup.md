@@ -69,6 +69,9 @@ as HOST_USER
 ### install rvm
 
     bash < <(curl -s https://rvm.beginrescueend.com/install/rvm)
+    
+    Note: if rvm fails on 'cannot create /usr/local/bin/rvm', check to see if /etc/rvmrc
+    exists. If it does, it will be sourced by bash and will attempt a global install.
 
 ### install ruby 1.9.2
 
@@ -107,4 +110,27 @@ thin config file:
     TBD - Steal this from Mike Clark's recipes book
     
     
+    # check $SITE - cobbled from apache check
+    check file $SITE_bin with path /usr/sbin/$SITE
+      if failed md5 checksum and
+         expect the sum 869b5a36e7f2d553197675fec58c3917 then stop
+      if failed permission 755 then stop
+      if failed uid root then stop
+      if failed gid root then stop
+      alert mike@clove.com on {
+            checksum, permission, uid, gid # , unmonitor
+        } with the mail-format { subject: "/usr/sbin/$SITE modified " }
+      group server
+
+    # check $SITE - cobbled from apache check
+    check file postmaster_bin with path /usr/bin/postmaster
+      if failed md5 checksum and
+         expect the sum 13704b8f314a0aa92e7d03557595f2de then stop
+      if failed permission 755 then stop
+      if failed uid root then stop
+      if failed gid root then stop
+      alert mike@clove.com on {
+            checksum, permission, uid, gid # , unmonitor    } with the mail-format { subject: "/usr/sbin/postmaster modified " }
+      group server
+
     
