@@ -1,6 +1,7 @@
+require './lib/tdd_deploy/version'
 Gem::Specification.new do |s|
   s.name = 'tdd_deploy'
-  s.version = "0.0.1"
+  s.version = TddDeploy::VERSION
   s.required_ruby_version = '>= 1.9.2'
   
   s.authors = ["Mike Howard"]
