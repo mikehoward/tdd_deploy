@@ -40,6 +40,14 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
     # puts @tester.test_results
   end
   
+  def test_rack_interface
+    code, headers, body = @tester.call({})
+    assert_equal 200, code, "@tester always responds with 200"
+    assert_not_nil body, "body should not be nil"
+    assert_equal 'text/html', headers['Content-Type'], "Content-Type is text/html"
+    assert_equal headers['Content-Length'].to_i, body.length, "Content-Length is the size of body"
+  end
+
   # def test_run_server
   #   stdout, stderr, cmd = run_locally 'quit' do
   #     "#{File.join(BIN_DIR, 'tdd_deploy_server')}"
