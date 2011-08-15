@@ -29,6 +29,11 @@ require 'tdd_deploy/deploy_test_methods'
 #     end
 #     etc
 #   end
+#
+#  NOTE: Derived classes which provide an **initialize** method should call super
+#  to ensure that the environment is set. See TddDeploy::Base to see what the
+#  parent initializer does.
+
 module TddDeploy
   class Base
     include TddDeploy::Assertions
@@ -36,9 +41,12 @@ module TddDeploy
     include TddDeploy::RunMethods
     include TddDeploy::DeployTestMethods
 
-    # args are ignored - they are here in case a derived class needs some
+    # args are ignored, unless the args.last is a Hash. If it is passed to *set_env*.
+    # This allows derived classes to have their own arguments as well as allowing
+    # the environment values to modified in a uniform way.
     def initialize *args
       read_env || reset_env
+      set_env(args.pop) if args.last.is_a? Hash
     end
   end
 end

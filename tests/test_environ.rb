@@ -4,21 +4,23 @@ $:.unshift File.expand_path('../../lib', __FILE__)
 require 'test_helpers'
 require 'tdd_deploy/environ'
 
-class Base
-  include TddDeploy::Environ
-end
+module TestEnviron
+  class Base
+    include TddDeploy::Environ
+  end
 
-class Foo < Base
-end
+  class Foo < Base
+  end
 
-class Bar < Base
+  class Bar < Base
+  end
 end
 
 class TestEnvironTestCase < Test::Unit::TestCase
   include TddDeploy::Environ
 
   def setup
-    @foo = Foo.new@foo
+    @foo = TestEnviron::Foo.new
     @foo.reset_env
   end
   
@@ -26,26 +28,48 @@ class TestEnvironTestCase < Test::Unit::TestCase
     @foo.reset_env
     @foo.save_env
   end
-
-  def test_class_variable_assessors
-    [:env_hash, :env_types, :env_defaults].each do |sym|
-      assert @foo.respond_to?(sym), "#{@foo.class} responds to #{sym}"
+  
+  def test_exsistence_of_public_methods
+    [:reset_env, :read_env, :reset_env].each do |meth|
+      assert @foo.respond_to?(meth), "@foo should respond to #{meth}"
+    end
+  end
+  def test_response_to_accessors
+    [:env_hash].each do |meth|
+      assert @foo.respond_to?("#{meth}".to_sym), "@foo should respond to #{meth}"
+      assert @foo.respond_to?("#{meth}=".to_sym), "@foo should respond to #{meth}="
+      refute_nil @foo.send(meth), "@foo.#{meth} should not be nil"
+    end
+  end
+  def test_response_to_readers
+    [:env_defaults, :env_types].each do |meth|
+      assert @foo.respond_to?("#{meth}".to_sym), "@foo should respond to #{meth}"
+      refute_nil @foo.send(meth), "@foo.#{meth} should not be nil"
+    end
+  end
+  
+  def test_resonse_to_instance_assessors
+    [:env_hash, :ssh_timeout, :site_base_port, :site_num_servers,
+      :host_admin, :local_admin, :local_admin_email, :site, :site_user,
+      :hosts, :balance_hosts, :db_hosts, :web_hosts].each do |meth|
+      assert @foo.respond_to?(meth), "@foo should respond to #{meth}"
+      assert @foo.respond_to?("#{meth}".to_sym), "@foo should respond to #{meth}="
     end
   end
   
   def test_env_type
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
     "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |sym|
-      assert @foo.env_types.keys.include?(sym.to_s), "#{@foo.class}#env_types.keys includes #{sym}"
+      assert @foo.env_types.keys.include?(sym.to_s), "@foo.env_types.keys includes #{sym}"
     end
     ["ssh_timeout", "site_base_port", "site_num_servers"].each do |key|
-      assert_equal :int, @foo.env_types[key], "#{@foo.class}#env_types[#{key}] should be :int"
+      assert_equal :int, @foo.env_types[key], "@foo.env_types[#{key}] should be :int"
     end
     ["host_admin", "local_admin", "local_admin_email", "site", "site_user"].each do |key|
-      assert_equal :string, @foo.env_types[key], "#{@foo.class}#env_types[#{key}] should be :string"
+      assert_equal :string, @foo.env_types[key], "@foo.env_types[#{key}] should be :string"
     end
     ["balance_hosts", "db_hosts", "web_hosts"].each do |key|
-      assert_equal :list, @foo.env_types[key], "#{@foo.class}#env_types[#{key}] should be :list"
+      assert_equal :list, @foo.env_types[key], "@foo.env_types[#{key}] should be :list"
     end
   end
   
@@ -79,17 +103,17 @@ class TestEnvironTestCase < Test::Unit::TestCase
     ["ssh_timeout", "site_base_port", "site_num_servers"].each do |key|
       tmp = @foo.send(key.to_sym) + 12
       @foo.send "#{key}=", tmp
-      assert_equal tmp, @foo.send(key.to_sym), "#{@foo.class}##{key} should now be #{tmp}"
+      assert_equal tmp, @foo.send(key.to_sym), "@foo.#{key} should now be #{tmp}"
     end
     ["host_admin", "local_admin", "local_admin_email", "site", "site_user"].each do |key|
       tmp = "#{key}-changed"
       @foo.send "#{key}=", tmp
-      assert_equal tmp, @foo.send(key.to_sym), "#{@foo.class}##{key} should now be #{tmp}"
+      assert_equal tmp, @foo.send(key.to_sym), "@foo.#{key} should now be #{tmp}"
     end
     ["balance_hosts", "db_hosts", "web_hosts"].each do |key|
       tmp = @foo.send(key.to_sym).join(',') + ',new,values'
       @foo.send "#{key}=", tmp
-      assert_equal tmp.split(/,/), @foo.send(key.to_sym), "#{@foo.class}##{key} should now be #{tmp}"
+      assert_equal tmp.split(/,/), @foo.send(key.to_sym), "@foo.#{key} should now be #{tmp}"
     end
   end
   
@@ -123,7 +147,7 @@ class TestEnvironTestCase < Test::Unit::TestCase
 
   def test_transfer_env
     @foo.ssh_timeout = 401
-    bar = Bar.new
+    bar = TestEnviron::Bar.new
     assert_equal 401, bar.ssh_timeout, "Setting env in one object should transfer to another"
   end
 end

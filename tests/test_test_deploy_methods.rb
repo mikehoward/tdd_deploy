@@ -59,21 +59,21 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
       @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, '', 'session catches empty match expression' do
         'uname -a'
       end
-      @tester.clear_failure_stats
+      @tester.reset_tests
     end
 
     tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, 'no-file-exists', 'generate an error' do
       'ls /usr/no-file-exists'
     end
     # @tester.announce_test_results
-    @tester.clear_failure_stats
+    @tester.reset_tests
     refute tmp, "run as root should fail when accessing a non-existent file"
 
     tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, "/root", "should run as root on host #{@tester.hosts.first}" do
       'pwd'
     end
     # @tester.announce_test_results
-    @tester.clear_failure_stats
+    @tester.reset_tests
     assert tmp, "should be able to run on #{@tester.hosts.first} as root"
   end
 

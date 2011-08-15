@@ -1,5 +1,8 @@
 module TddDeploy
   module Assertions
+    GREEN = '#0c0'
+    RED   = '#c00'
+    WRAP_ELT_TAG = 'p'
     # TddDeploy re-implements popular assertions so that they can be used
     # in multi-host testing.
     #
@@ -8,77 +11,60 @@ module TddDeploy
     # which can be displayed using *announce_test_results()*.
     #
     # all assertions return boolean *true* or *false*
-    
-    # failure_count returns the number failures recorded since inception or the last
-    # call to either *clear_failure_stats* or *announce_test_results*
-    def failure_count
-      @failure_count ||= 0
-    end
 
-    def failure_count=(value = 1)
-      @failure_count ||= 0
-      value = value.to_int > 0 ? value.to_int : 1
-      @failure_count = value
-    end
-    
-    # failure_messages returns an array of accumulated failure messages
-    def failure_messages
-      @failure_messages ||= []
-    end
 
-    # announce_test_results(verbose = false) prints out the current number
-    # of failures and the accumulation failure messages. It announces that
-    # all tests have passed if there are no failures recorded and verbose is true
-    #
-    # failure counts and messages are cleared.
-    def announce_test_results verbose = false
-      puts test_results_str(verbose)
-    end
-    
-    # test_results_str(verbose = false) returns the string printed by *announce_test_results*
-    def test_results_str verbose = false
-      if self.failure_count > 0
-        return "#{self.failure_count} Failed Tests\n\n" + self.failure_messages.join("\n\n")
-      elsif verbose
-        return "All tests passed: #{caller}"
+    attr_reader :test_count, :failure_count, :failure_messages, :test_messages
+
+    # test_results returns the string string of all test messages
+    def test_results
+      unless self.failure_count.nil? || self.failure_count == 0
+        str = "#{self.failure_count} Failed Test" + (self.failure_count == 1 ? '' : 's')
+      else
+        str = ''
       end
-      self.clear_failure_stats
-      ''
+      self.test_messages ? str + self.test_messages.join("\n") : str
     end
     
-    # clear_failure_stats zeros out failure messages and count
-    def clear_failure_stats
+    def test_failures
+      return '' unless self.failure_count > 0
+      "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">Failed #{self.failure_count} tests</#{WRAP_ELT_TAG}>\n" + self.failure_messages.join("\n")
+    end
+    
+    # reset_tests zeros out failure messages and count
+    def reset_tests
+      @test_count =
+        @failure_count = 0
       @failure_messages = []
-      @failure_count = 0
+      @test_messages = []
     end
 
     # Assertions all return true or false. The last parameter is always the assertions
     # message and is optional.
     #
-    # assert(prediccate, msg = nil) returns true if prediccate is true, else adds *msg*
+    # assert(prediccate, msg) returns true if prediccate is true, else adds *msg*
     # to failure messages and returns false
-    def assert predicate, msg = nil
+    def assert predicate, msg
       assert_primative predicate, msg
     end
   
-    def assert_equal expect, value, msg = nil
+    def assert_equal expect, value, msg
       assert_primative expect == value, msg
     end
     
-    def assert_match regx, value, msg = nil
+    def assert_match regx, value, msg
       regx = Regexp.new(regx.to_s) unless regx.instance_of? Regexp
       assert_primative regx.match(value), msg
     end
   
-    def assert_nil value, msg = nil
+    def assert_nil value, msg
       assert_primative value.nil?, msg
     end
   
-    def assert_not_nil value, msg = nil
+    def assert_not_nil value, msg
       assert_primative !value.nil?, msg
     end
 
-    def assert_raises exception = Exception, msg = nil, &block
+    def assert_raises exception = Exception, msg, &block
       begin
         block.call
       rescue exception => e
@@ -87,40 +73,53 @@ module TddDeploy
       assert_primative false, msg
     end
 
-    def refute predicate, msg = nil
+    def refute predicate, msg
       assert_primative !predicate, msg
     end
   
-    def refute_equal expect, value, msg = nil
+    def refute_equal expect, value, msg
       assert_primative expect != value, msg
     end
   
-    def pass msg = nil
+    def pass msg
       assert_primative true, msg
     end
 
-    def fail msg = nil
+    def fail msg
       assert_primative false, msg
     end
 
+    # private methods
     private
-    def assert_primative predicate, msg = nil, caller_arg = 2
-      unless predicate
-        augmented_message = msg ? msg : "assertion failed"
-        augmented_message += "\nCalled from: #{caller(caller_arg).first}"
-        self.failure_messages.push augmented_message
-        self.failure_count += 1
-        false
-      else
-        STDOUT.write('.') ; STDOUT.flush
-        true
-      end
+    def assert_primative predicate, msg
+      predicate ? test_passed("Passed: #{msg}") : test_failed("Failed: #{msg}")
+      predicate
+    end
+    
+    # test message handling
+    def test_failed(msg)
+      msg = "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">#{msg}</#{WRAP_ELT_TAG}>"
+      add_failure(msg)
+      add_message(msg)
+    end
+    
+    def test_passed(msg)
+      msg = "<#{WRAP_ELT_TAG} style=\"color:#{GREEN}\">#{msg}</#{WRAP_ELT_TAG}>"
+      add_message(msg)
     end
 
-    def included(base)
-      at_exit do
-        announce_test_results
-      end
+    def add_failure(msg)
+      @failure_messages ||= []
+      @failure_count ||= 0
+      @failure_messages.push(msg)
+      @failure_count += 1
+    end
+
+    def add_message(msg)
+      @test_messages ||= []
+      @test_count ||= 0
+      @test_messages.push(msg)
+      @test_count += 1
     end
   end
 end

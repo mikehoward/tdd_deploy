@@ -47,17 +47,17 @@ module TddDeploy
       rsp, err_rsp, cmd = run_in_ssh_session_as(userid, host, &block)
 
       result = err_rsp.nil?
+      
+      prefix = "user@host: #{userid}@#{host}"
 
-      fail "Host: #{host}: command generated error data:\n" +
-        "  command: #{cmd}\n rsp: '#{rsp}'\n err rsp: '#{err_rsp}'" if err_rsp
+      fail "<pre>\n#{prefix}: command generated error data:\n" +
+        "  command: #{cmd}\n stdout: '#{rsp}'\n stderr: '#{err_rsp}'\n</pre>" if err_rsp
 
-      if !assert_not_nil rsp, "Host: #{host}: stdout is empty for command '#{cmd}'"
+      if !assert_not_nil rsp, "#{prefix}: stdout is empty for command '#{cmd}'"
         result &= false
-      elsif !assert_match match, rsp, "Host: #{host}: #{err_msg}\n rsp: #{rsp}"
+      elsif !assert_match match, rsp, "#{prefix}: #{err_msg}\n rsp: #{rsp}"
         result &= false
       end
-      
-      self.announce_test_results unless result
 
       result
     end

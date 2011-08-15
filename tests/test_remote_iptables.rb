@@ -8,7 +8,7 @@ require 'tdd_deploy/host_tests/remote_iptables'
 
 class  RemoteIptablesTestCase < Test::Unit::TestCase
   def setup
-    @tester = TddDeploy::IpTables.new
+    @tester = TddDeploy::RemoteIpTables.new
     @tester.reset_env
     @tester.set_env :hosts => 'arch', :host_admin => 'mike', :local_admin => 'mike'
   end

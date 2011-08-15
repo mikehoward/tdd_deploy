@@ -10,14 +10,22 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
   
   def setup
     @assertion_helper = AssertionHelper.new
+    @assertion_helper.reset_tests
   end
   
-  def test_assert
-    assert @assertion_helper.assert(true, 'true is true')
-    stdout, stderr = capture_io do
-      @assertion_helper.announce_test_results
-    end
-    assert_match /All Tests Passed/i, stdout, "announcement should include 1 Failure"
+  def teardown
+    @assertion_helper = nil
+  end
+  
+  def test_assert_true_passes
+    assert @assertion_helper.assert(true, 'true is true'), 'true tests true'
+    assert_match /Pass/i, @assertion_helper.test_results, "test messagess should include 'Pass'"
+  end
+  
+  def test_assert_false_fails
+    refute @assertion_helper.assert(false, 'true is true'), "false tests false"
+    assert_match /Fail/i, @assertion_helper.test_results, "test messages should include 'Fail'"
+    assert_match /1 Failed/, @assertion_helper.test_results, "test messages should count 1 failure (#{@assertion_helper.test_messages})"
   end
   
   def test_assert_equal
@@ -50,13 +58,5 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
   
   def test_fail
     refute @assertion_helper.fail('fail returns false'), 'fail returns false'
-  end
-  
-  def test_announcement
-    refute @assertion_helper.assert(false, 'forcing a failure'), 'forcing a failure'
-    stdout, stderr = capture_io do
-      @assertion_helper.announce_test_results
-    end
-    assert_match /1 Failed/, stdout, "announcement should include 1 Failure"
   end
 end

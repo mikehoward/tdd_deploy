@@ -7,7 +7,7 @@ class TestSiteLayoutTestCase < Test::Unit::TestCase
     @tester = TddDeploy::SiteLayout.new
     @tester.reset_env
     @tester.set_env :hosts => 'arch'
-    @tester.clear_failure_stats
+    @tester.reset_tests
   end
 
   def teardown
