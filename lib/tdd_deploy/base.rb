@@ -45,8 +45,18 @@ module TddDeploy
     # This allows derived classes to have their own arguments as well as allowing
     # the environment values to modified in a uniform way.
     def initialize *args
-      read_env || reset_env
+      self.env_hash || read_env || reset_env
       set_env(args.pop) if args.last.is_a? Hash
+    end
+    
+    # gather up all descendents so we know what tests to run
+    class <<self
+      attr_accessor :children
+      
+      def inherited(child)
+        self.children ||= []
+        self.children << child
+      end
     end
   end
 end

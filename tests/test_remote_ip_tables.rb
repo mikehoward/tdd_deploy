@@ -1,6 +1,6 @@
 $:.unshift File.expand_path('..', __FILE__)
 require 'test_helpers'
-require 'tdd_deploy/host_tests/remote_iptables'
+require 'tdd_deploy/host_tests/remote_ip_tables'
 
 # NOTES: These tests require a host to talk to. I run an Arch Linux server on my local
 # machine as a virtual host. Set up your own with appropriate accounts if you need to run

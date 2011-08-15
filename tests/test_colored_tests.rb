@@ -29,6 +29,8 @@ class  ColoredResultTestCase < Test::Unit::TestCase
   
   def teardown
     @tester = nil
+    # we need to delete this guy so it doesn't mess up the testing of tdd_deploy_server.rb
+    TddDeploy::Base.children.delete ColoredResult
   end
 
   def test_passing_result

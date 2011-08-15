@@ -4,18 +4,17 @@ require 'test/unit'
 require 'tdd_deploy/environ'
 require 'tdd_deploy/run_methods'
 
-GEM_ROOT = File.expand_path('../..', __FILE__)
-BIN_DIR = File.join(GEM_ROOT, 'bin')
+class TestTddDeployContextTestCase < Test::Unit::TestCase
+  GEM_ROOT = File.expand_path('../..', __FILE__)
+  BIN_DIR = File.join(GEM_ROOT, 'bin')
 
-class TestSetEnvTestCase < Test::Unit::TestCase
-  include TddDeploy::Environ
   include TddDeploy::RunMethods
 
   def test_set_env_rb_exists
     assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_context')), "tdd_deploy_context exists"
   end
   
-  def test_run_env_rb
+  def test_run_context_editor
     stdout, stderr, cmd = run_locally 'quit' do
       "#{File.join(BIN_DIR, 'tdd_deploy_context')}"
     end

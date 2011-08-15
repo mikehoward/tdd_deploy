@@ -1,5 +1,7 @@
 module TddDeploy
   module RunMethods
+    require 'net/ssh'
+    
     # runs the output of the block on all hosts defined in self.hosts as user self.host_admin.
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
     # Hash keys are host names as strings.

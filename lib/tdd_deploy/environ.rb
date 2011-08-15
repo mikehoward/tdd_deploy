@@ -37,27 +37,38 @@ module TddDeploy
     # * 'web_hosts' - hosts which run the web server [may be empty, in which case 'hosts' is used]
     
   module Environ
+    
+    # == DataCache
+    #
+    # DataCache is a hack to provide a single shared data store for all classes which
+    # include TddDeploy::Environ
+    class DataCache
+      class << self
+        attr_accessor :env_hash, :env_types, :env_defaults
+      end
+    end
+    
     ENV_FNAME = 'site_host_setup.env'
 
     # set up all the standard accessors
-    # lazy initialize @@env_hash
+    # lazy initialize DataCache.env_hash
     def env_hash
-      read_env || reset_env unless defined?(@@env_hash)
-      @@env_hash
+      read_env || reset_env unless defined?(DataCache.env_hash)
+      DataCache.env_hash
     end
     
     def env_hash=(hash)
       raise ArgumentError.new("env_hash=(): arg must be a hash") unless hash.is_a? Hash
-      if !(tmp = hash.keys - @@env_types.keys).empty?
+      if !(tmp = hash.keys - DataCache.env_types.keys).empty?
         raise ArgumentError.new("env_hash=(): Illegal Keys in value: #{tmp.join(',')}")
-      elsif !(tmp = @@env_types.keys - hash.keys).empty?
+      elsif !(tmp = DataCache.env_types.keys - hash.keys).empty?
         raise ArgumentError.new("env_hash=(): Missing Keys in value: #{tmp.join(',')}")
       else
-        @@env_hash = hash
+        DataCache.env_hash = hash
       end
     end
     
-    @@env_types ||= {
+    DataCache.env_types = {
       'ssh_timeout' => :int,
       'site_base_port' => :int,
       'site_num_servers' => :int,
@@ -75,11 +86,7 @@ module TddDeploy
       'web_hosts' => :list,
     }
     
-    def env_types
-      @@env_types
-    end
-
-    @@env_defaults ||= {
+    DataCache.env_defaults ||= {
       'ssh_timeout' => 5,
       'site_base_port' => 8000,
       'site_num_servers' => 3,
@@ -96,28 +103,32 @@ module TddDeploy
       'db_hosts' => 'bar,foo',
       'web_hosts' => 'bar,foo',
     }
+    
+    def env_types
+      DataCache.env_types
+    end
 
     def env_defaults
-      @@env_defaults
+      DataCache.env_defaults
     end
 
     # set_env(value_hash {}) - convenience method which sets values of the environment
     # hash using a hash rather than one-at-a-time
     def set_env(value_hash = {})
-      @@env_hash ||= {}
+      DataCache.env_hash ||= {}
       value_hash.each do |k, v|
         k = k.to_s
         case self.env_types[k]
-        when :int then @@env_hash[k] = v.to_i
-        when :string then @@env_hash[k] = v.to_s
-        when :list then @@env_hash[k] = self.str_to_list(v)
+        when :int then DataCache.env_hash[k] = v.to_i
+        when :string then DataCache.env_hash[k] = v.to_s
+        when :list then DataCache.env_hash[k] = self.str_to_list(v)
         else
           if k == 'hosts'
-            if @@env_hash['web_hosts'] == @@env_hash['db_hosts']
-              @@env_hash['web_hosts'] =
-                @@env_hash['db_hosts'] = self.str_to_list(v)
+            if DataCache.env_hash['web_hosts'] == DataCache.env_hash['db_hosts']
+              DataCache.env_hash['web_hosts'] =
+                DataCache.env_hash['db_hosts'] = self.str_to_list(v)
             else
-              raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{@@env_hash['web_hosts']}\n db_hosts: #{@@env_hash['db_hosts']}")
+              raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
               # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
             end
           else
@@ -128,7 +139,7 @@ module TddDeploy
     end
     
     def clear_env
-      @@env_hash = {}
+      DataCache.env_hash = {}
     end
     
     # reset_env resets env_hash to env_defaults
@@ -141,7 +152,7 @@ module TddDeploy
     # someplace between the current directory and the root of the filesystem
     def read_env
       dir_path = Dir.pwd
-      @@env_hash ||= {}
+      DataCache.env_hash ||= {}
       loop do
         path = File.join dir_path, TddDeploy::Environ::ENV_FNAME
         if File.exists? TddDeploy::Environ::ENV_FNAME
@@ -256,13 +267,13 @@ module TddDeploy
 
     # create accessors for all keys in env_types
     tmp = ''
-    @@env_types.each do |k, t|
+    DataCache.env_types.each do |k, t|
       tmp +=<<-EOF
       def #{k}
         self.env_hash['#{k}']
       end
       EOF
-      case @@env_types[k]
+      case DataCache.env_types[k]
       when :int
         tmp +=<<-EOF
         def #{k}=(v)

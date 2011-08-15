@@ -12,30 +12,44 @@ module TddDeploy
     #
     # all assertions return boolean *true* or *false*
 
-
-    attr_reader :test_count, :failure_count, :failure_messages, :test_messages
+    # == Stats 
+    #
+    # Stats is a class which acts as a singleton container for test statistics & messages
+    # test_count, messages, failiure count, and failure messages are all instance variables
+    # of Stats. This avoids nasty complications which can come us when using instance,
+    # class, and class-instance variables because the actual variables are defined when they
+    # are initialized - which can easily differ from where they are declared.
+    class Stats
+      class << self
+        attr_accessor :test_count, :failure_count, :failure_messages, :test_messages
+      end
+    end
 
     # test_results returns the string string of all test messages
     def test_results
-      unless self.failure_count.nil? || self.failure_count == 0
-        str = "#{self.failure_count} Failed Test" + (self.failure_count == 1 ? '' : 's')
+      unless Stats.failure_count.nil? || Stats.failure_count == 0
+        str = "#{Stats.failure_count} Failed Test" + (Stats.failure_count == 1 ? '' : 's')
       else
         str = ''
       end
-      self.test_messages ? str + self.test_messages.join("\n") : str
+      Stats.test_messages ? str + Stats.test_messages.join("\n") : str
     end
     
     def test_failures
-      return '' unless self.failure_count > 0
-      "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">Failed #{self.failure_count} tests</#{WRAP_ELT_TAG}>\n" + self.failure_messages.join("\n")
+      return '' unless Stats.failure_count > 0
+      "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">Failed #{Stats.failure_count} tests</#{WRAP_ELT_TAG}>\n" + Stats.failure_messages.join("\n")
+    end
+    
+    def test_messages
+      Stats.test_messages
     end
     
     # reset_tests zeros out failure messages and count
     def reset_tests
-      @test_count =
-        @failure_count = 0
-      @failure_messages = []
-      @test_messages = []
+      Stats.test_count = 0
+      Stats.failure_count = 0
+      Stats.failure_messages = []
+      Stats.test_messages = []
     end
 
     # Assertions all return true or false. The last parameter is always the assertions
@@ -109,17 +123,24 @@ module TddDeploy
     end
 
     def add_failure(msg)
-      @failure_messages ||= []
-      @failure_count ||= 0
-      @failure_messages.push(msg)
-      @failure_count += 1
+      Stats.failure_messages ||= []
+      Stats.failure_count ||= 0
+      Stats.failure_messages.push(msg)
+      Stats.failure_count += 1
     end
 
     def add_message(msg)
-      @test_messages ||= []
-      @test_count ||= 0
-      @test_messages.push(msg)
-      @test_count += 1
+      Stats.test_messages ||= []
+      Stats.test_count ||= 0
+      Stats.test_messages.push(msg)
+      Stats.test_count += 1
+    end
+    
+    def self.included(mod)
+      Stats.test_count = 0
+      Stats.failure_count = 0
+      Stats.failure_messages = []
+      Stats.test_messages = []
     end
   end
 end

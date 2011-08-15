@@ -12,6 +12,10 @@ class TddDeployEnv
   include TddDeploy::Environ
 
   attr_accessor :modified
+  
+  def initialize
+    read_env || reset_env
+  end
 
   def show_env
     puts "============================================="
