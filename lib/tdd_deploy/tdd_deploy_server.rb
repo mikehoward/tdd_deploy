@@ -1,14 +1,11 @@
 #!/usr/bin/env ruby
-
-require 'gserver'
-
-$:.unshift File.expand_path('../../lib', __FILE__)
+$:.unshift File.expand_path('../lib', __FILE__)
 
 require 'tdd_deploy'
 
 module TddDeploy
   class Server < TddDeploy::Base
-    LIB_DIR = File.expand_path('../../lib', __FILE__)
+    LIB_DIR = File.expand_path('../..', __FILE__)
     HOST_TESTS_DIR = File.join('tdd_deploy', 'host_tests')
     SITE_TESTS_DIR = File.join('tdd_deploy', 'site_tests')
 
@@ -18,8 +15,6 @@ module TddDeploy
       @port = args.shift
       @already_defined = TddDeploy.constants
       super
-      
-      
     end
 
     def load_all_tests
@@ -49,8 +44,8 @@ module TddDeploy
     
     def call(env)
       run_all_tests
-      body = self.test_results
-      return [200, {'Content-Length' => body.length.to_s, 'Content-Type' => 'text/html'}, [body]]
+      body = ["<h1>TDD Test Results:</h1>", self.test_results]
+      return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]
     end
   end
 end

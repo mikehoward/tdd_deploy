@@ -28,9 +28,9 @@ module TddDeploy
     # test_results returns the string string of all test messages
     def test_results
       unless Stats.failure_count.nil? || Stats.failure_count == 0
-        str = "#{Stats.failure_count} Failed Test" + (Stats.failure_count == 1 ? '' : 's')
+        str = "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">#{Stats.failure_count} Failed Test" + (Stats.failure_count == 1 ? '' : 's') + "</#{WRAP_ELT_TAG}>"
       else
-        str = ''
+        str = "<#{WRAP_ELT_TAG} style=\"color:#{GREEN}\">All Tests Passed</#{WRAP_ELT_TAG}>"
       end
       Stats.test_messages ? str + Stats.test_messages.join("\n") : str
     end

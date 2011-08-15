@@ -1,4 +1,10 @@
-$:.unshift File.expand_path('../../lib', __FILE__)
+#! /bin/bash
 
-require 'tdd_deploy/tdd_deploy_server'
+MY_PATH="`pwd`/$_"
+TDD_PATH=`dirname $MY_PATH`
+TDD_PATH=`dirname $TDD_PATH`
+echo $MY_PATH
+echo $TDD_PATH
 
+
+# exec rackup $@

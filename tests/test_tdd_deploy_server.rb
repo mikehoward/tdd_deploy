@@ -11,7 +11,7 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
   include TddDeploy::RunMethods
   
   def setup
-    require File.join(BIN_DIR, 'tdd_deploy_server')
+    require 'tdd_deploy/tdd_deploy_server'
     @tester = TddDeploy::Server.new(PORT, :web_hosts => 'arch', :db_hosts => 'arch', 
       :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2)
   end
@@ -21,7 +21,7 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
   end
 
   def test_set_env_rb_exists
-    assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_server.rb')), "tdd_deploy_server.rb exists"
+    assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_server')), "tdd_deploy_server exists"
   end
   
   def test_tester_accessors
@@ -45,7 +45,7 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
     assert_equal 200, code, "@tester always responds with 200"
     assert_not_nil body, "body should not be nil"
     assert_equal 'text/html', headers['Content-Type'], "Content-Type is text/html"
-    assert_equal headers['Content-Length'].to_i, body.length, "Content-Length is the size of body"
+    assert_equal headers['Content-Length'].to_i, body.join('').length, "Content-Length is the size of body"
   end
 
   # def test_run_server
