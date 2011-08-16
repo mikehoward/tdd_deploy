@@ -1,10 +1,8 @@
-#! /bin/bash
+$:.unshift File.expand_path('../lib', __FILE__)
 
-MY_PATH="`pwd`/$_"
-TDD_PATH=`dirname $MY_PATH`
-TDD_PATH=`dirname $TDD_PATH`
-echo $MY_PATH
-echo $TDD_PATH
+require 'tdd_deploy/server'
 
+puts "File.expand_path('../lib', __FILE__): #{File.expand_path('../lib', __FILE__)}"
+puts "Dir.pwd: #{Dir.pwd}"
 
-# exec rackup $@
+run TddDeploy::Server.new

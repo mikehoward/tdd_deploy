@@ -222,36 +222,8 @@ module TddDeploy
       end
       f.close
     end
-    
-    # # (dynamically) supplies accessors for each TddDeploy environment variable.
-    # # also provides access to TddDeploy::Environ class methods as instance methods.
-    # module InstanceMethods
-    #   # returns the environment hash
-    #   def env_hash
-    #     self.class.env_hash
-    #   end
-    #   
-    #   # an instance method which actually calls self.class.reset_env on the supplied hash.
-    #   # raises ArgumentError if value not a Hash or a supplied key is incorrect
-    #   def env_hash=(value)
-    #     raise ArgumentError.new("env_hash must be a Hash") unless value.is_a? Hash
-    #     self.class.clear_env
-    #     self.class.set_env(value)
-    #   end
-    # 
-    #   # drags in all class methods as instance methods which delegate to corresponding class methods
-    #   def method_missing *args
-    #     method = args.shift
-    #     if TddDeploy::Environ::ClassMethods.instance_methods(false).include? method.to_sym
-    #       self.class.send method.to_sym, *args
-    #     else
-    #       args.unshift method
-    #       super
-    #     end
-    #   end
-    # end
-    #   
 
+    # accessors for all defined env variables
     def hosts
       (self.web_hosts.to_a + self.db_hosts.to_a + self.balance_hosts.to_a).uniq.sort
     end
@@ -259,7 +231,7 @@ module TddDeploy
     def hosts=(list)
       if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
         self.web_hosts =
-          self.db_hosts = self.class.str_to_list(list)
+          self.db_hosts = self.str_to_list(list)
       else
         raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
       end
