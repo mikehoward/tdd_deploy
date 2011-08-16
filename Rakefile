@@ -7,9 +7,7 @@ task :default => :test
 
 desc "Run Unit Tests"
 task :test do
-  Dir.new('tests').each do |fname|
-    system "ruby tests/" + fname if fname =~ /^test_/
-  end
+  autotest
 end
 
 desc "Create Gem"

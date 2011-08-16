@@ -21,7 +21,7 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
   # end
 
   def test_set_env_rb_exists
-    assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_server')), "tdd_deploy_server exists"
+    assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_server.rb')), "tdd_deploy_server exists"
   end
   # 
   # def test_tester_accessors

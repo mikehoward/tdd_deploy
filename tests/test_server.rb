@@ -3,7 +3,7 @@ $:.unshift File.expand_path('../../lib', __FILE__)
 require 'test/unit'
 require 'tdd_deploy/run_methods'
 
-class TestTddDeployServerTestCase < Test::Unit::TestCase
+class TestServerTestCase < Test::Unit::TestCase
   GEM_ROOT = File.expand_path('../..', __FILE__)
   BIN_DIR = File.join(GEM_ROOT, 'bin')
   PORT = 8809

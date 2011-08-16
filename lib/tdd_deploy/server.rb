@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 $:.unshift File.expand_path('../lib', __FILE__)
 
-require 'rack'
 require 'tdd_deploy'
 
 module TddDeploy
