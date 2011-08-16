@@ -5,12 +5,12 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 1.9.2'
   
   s.authors = ["Mike Howard"]
-  s.date = '2011-08-09'
+  s.date = '2011-08-16'
   s.summary = %q{ Test driven support for host provisioning & Capistrano deployment - for those who don't want to bother learning too much }
   s.description = s.summary
   s.email = %q{ mike@clove.com }
-  s.files = %w{ Capfile Gemfile HostSetup.md Readme.md SiteSetup.md config.ru } + Dir['bin/*'] +
-      Dir['lib/**/*.rb'] + Dir['tests/test*.rb']
+  s.files = %w{ Capfile Gemfile config.ru } + Dir['bin/*'] +
+      Dir['lib/**/*.rb'] + Dir['tests/test*.rb'] + Dir['lib/tasks/*.rake']
 
   s.homepage = 'https://github.com/mikehoward/tdd_deploy'
   s.licenses = ["GPL3"]
