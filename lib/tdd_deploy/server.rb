@@ -6,8 +6,9 @@ require 'tdd_deploy'
 module TddDeploy
   class Server < TddDeploy::Base
     LIB_DIR = File.expand_path('../..', __FILE__)
-    HOST_TESTS_DIR = File.join('tdd_deploy', 'host_tests')
-    SITE_TESTS_DIR = File.join('tdd_deploy', 'site_tests')
+    HOST_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'host_tests')
+    SITE_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'site_tests')
+    LOCAL_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'local_tests')
 
     attr_accessor :port, :test_classes
   
@@ -19,9 +20,15 @@ module TddDeploy
 
     def load_all_tests
       if TddDeploy::Base.children == [self.class]
-        [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR].each do |dir|
-          Dir.new(File.join(TddDeploy::Server::LIB_DIR, dir)).each do |fname|
-            require File.join(dir, fname) unless fname[0] == '.'
+        [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
+            TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
+          if File.exists?(dir)
+            puts "gathering tests from #{dir}"
+            Dir.new(dir).each do |fname|
+              require File.join(dir, fname) unless fname[0] == '.'
+            end
+          else
+            puts "skipping #{dir} - no such directory"
           end
         end
       end
