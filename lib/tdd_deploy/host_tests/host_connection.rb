@@ -14,14 +14,14 @@ module TddDeploy
 
     # ssh_login - attempts to log in as *host_admin* on all hosts from current user
     def ssh_login
-      deploy_test_on_all_hosts "/home/#{self.host_admin}\n", "unable to connect via ssh" do
+      deploy_test_on_all_hosts "/home/#{self.host_admin}\n", "should be able to connect via ssh" do
         'pwd'
       end
     end
     
     # ssh_login_as_root - attempts to log in as *root* on all hosts from current user
     def ssh_login_as_root
-      deploy_test_on_all_hosts_as 'root', '/root', "unable to connect as root via ssh" do
+      deploy_test_on_all_hosts_as 'root', '/root', "Should be able to connect as root via ssh" do
         'pwd'
       end
     end

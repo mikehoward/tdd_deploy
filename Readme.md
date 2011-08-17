@@ -24,11 +24,12 @@ It is designed to complement Capistrano, so it follows Capistrano's opinions:
 While, Capistrano focuses on deploying the Rails application, TddDeploy focuses on validating the
 configuration of both the deployment host(s) and a Rails application.
 
-* Installation
-* Assumptions
-* Data which is managed
-* Tests
-* Command Line Utilities
+* [Installation](#installation)
+* [Uninstall](#uninstall)
+* [Assumptions](#tdddeploy_assumptions)
+* [Data which is managed](#data_managed)
+* [Tests](#tests)
+* [Command Line Utilities](#utilities)
 
 ## Installation
 
@@ -42,7 +43,7 @@ configuration of both the deployment host(s) and a Rails application.
 
     tdd_deploy_context # fill in your data
     
-    tdd_deploy_server.rb  # starts server
+    tdd_deploy_server  # starts server
     
 To add or modify tests, copy a similar test to *lib/tdd\_deploy/local_tests* and hack
 it. Feel free to delete any tests you don't want from *lib/tdd\_deploy/hosts\_tests*
@@ -56,7 +57,7 @@ and *lib/tdd\_deploy/site\_tests*.
     
     bundle
 
-## TddDeploy Assumptions & Context Variables:
+## TddDeploy Assumptions
 
 The assumptions are all implemented in variables which define the provisioning and
 deployment environment. TddDeploy refers to them as 'environment' variables, but to
@@ -145,5 +146,5 @@ The **uninstall** rake task does *not* remove tests from this directory.
 There are two utilities:
 
 * tdd_deploy_context - a command line utility for managing Host and Site context variables
-* tdd_deploy_server.rb - a command line utility which starts up the test results server on localhost,
+* tdd_deploy_server - a command line utility which starts up the test results server on localhost,
 port 9292.
