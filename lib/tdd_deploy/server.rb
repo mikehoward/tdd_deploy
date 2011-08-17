@@ -36,6 +36,8 @@ module TddDeploy
     
     def run_all_tests
       load_all_tests
+      
+      reset_tests
 
       ret = true
       self.test_classes.each do |klass|
