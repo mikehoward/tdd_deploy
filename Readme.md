@@ -1,5 +1,11 @@
 # TddDeploy
 
+**This is a prototype. It works, but is ugly and almost certainly the wrong design.**
+
+*I think there is room in host provisioning and site installation for TDD tools which
+are independent of the provisioning framework - which is what TddDeploy attempts to
+be.*
+
 TddDeploy implements command execution on remote hosts to aid in host provisioning and
 deployment of multiple Rails applications on one or more hosts.
 
@@ -18,11 +24,45 @@ It is designed to complement Capistrano, so it follows Capistrano's opinions:
 While, Capistrano focuses on deploying the Rails application, TddDeploy focuses on validating the
 configuration of both the deployment host(s) and a Rails application.
 
+* Installation
+* Assumptions
+* Data which is managed
+* Tests
+* Command Line Utilities
+
+## Installation
+
+    gem install tdd_deploy
+    
+    (add to your Gemfile)
+    
+    bundle
+    
+    rake tdd_deploy:install # which copies the existing tests to *lib/tdd_deploy*
+
+    tdd_deploy_context # fill in your data
+    
+    tdd_deploy_server.rb  # starts server
+    
+To add or modify tests, copy a similar test to *lib/tdd\_deploy/local_tests* and hack
+it. Feel free to delete any tests you don't want from *lib/tdd\_deploy/hosts\_tests*
+and *lib/tdd\_deploy/site\_tests*.
+
+## Uninstall
+
+    rake tdd_deploy:uninstall # removes all tests from *lib/tdd_deploy/hosts_tests* & *lib/tdd_deploy/site_tests*
+    
+    (remove from Gemfile)
+    
+    bundle
+
 ## TddDeploy Assumptions & Context Variables:
 
 The assumptions are all implemented in variables which define the provisioning and
 deployment environment. TddDeploy refers to them as 'environment' variables, but to
 avoid confusion, we'll call them 'context variables'.
+
+## Data Managed
 
 All variables are saved in a file named **site\_host\_setup.env** which will (typically)
 be in the root directory of the Rails application. The format is 'name=value'.
@@ -87,3 +127,23 @@ belong in deployment and app provisioning (whatever that means) rather than test
 is the beginning of the block of ports used by the pack of servers.
 * site\_num\_servers - int - number of *thin* or *mongrel* (or whatever) servers which the app
 expects to have running.
+
+## Tests
+
+You must install the tests by running **rake tdd\_deploy:install**. This copies the
+tests in the gem to your app's directory - into *lib/tdd\_deploy/*.
+
+Tests live in *lib/tdd_deploy* in one of three subdirectories:
+
+* lib/tdd\_deploy/host_tests - copies of my tests for a host running the Arch linux distribution
+* lib/tdd\_deploy/site_tests - cursory tests for my personal site setup
+* lib/tdd\_deploy/local\_tests - initially empty. Create tests there by copying and hacking.
+The **uninstall** rake task does *not* remove tests from this directory.
+
+## Utilities
+
+There are two utilities:
+
+* tdd_deploy_context - a command line utility for managing Host and Site context variables
+* tdd_deploy_server.rb - a command line utility which starts up the test results server on localhost,
+port 9292.

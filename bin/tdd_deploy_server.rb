@@ -1,6 +1,6 @@
 #! /usr/bin/env ruby
 
-$:.unshift File.expand_path('../lib', __FILE__)
+# $:.unshift File.expand_path('../lib', __FILE__)
 CONFIG_RU = File.expand_path('../../config.ru', __FILE__)
 
-system "rackup #{CONFIG_RU}"
+system "rackup --debug #{CONFIG_RU}"
