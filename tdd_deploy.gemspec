@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/mikehoward/tdd_deploy'
   s.licenses = ["GPL3"]
   
-  s.executables = ['tdd_deploy_context', 'tdd_deploy_server.rb']
+  s.executables = ['tdd_deploy_context', 'tdd_deploy_server']
 
   s.require_paths = ["lib"]
   s.rubygems_version = %q{ 1.6.2 }

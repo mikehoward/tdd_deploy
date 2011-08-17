@@ -16,3 +16,8 @@ task :gem do
   system "cp tdd_deploy-#{tdd_deploy_version}.gem ~/Rails/GemCache/gems/"
   system "(cd ~/Rails/GemCache ; gem generate_index -d . )"
 end
+
+desc "Push Gem to rubygems"
+task :push do
+  system "gem push tdd_deploy-#{tdd_deploy_version}.gem"
+end
