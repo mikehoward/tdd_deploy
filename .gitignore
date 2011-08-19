@@ -1,3 +1,11 @@
+cfg-out/
+config/
+site/
 *~
-.*\#
-site_host_setup.sh
+doc/
+garbage
+junk
+site_host_setup.env
+*.gem
+.yardoc/
+.rvmrc
