@@ -2,7 +2,8 @@ module TddDeploy
   module Assertions
     GREEN = '#0c0'
     RED   = '#c00'
-    WRAP_ELT_TAG = 'p'
+    GROUP_ELT_TAG = 'ul'
+    RESULT_ELT_TAG = 'p'
     # TddDeploy re-implements popular assertions so that they can be used
     # in multi-host testing.
     #
@@ -25,122 +26,147 @@ module TddDeploy
       end
     end
 
+    # Assertions all return true or false. The last parameter is always the assertions
+    # message and is optional.
+    #
+    # assert(prediccate, msg) returns true if prediccate is true, else adds *msg*
+    # to failure messages and returns false
+    def assert key, predicate, msg
+      assert_primative key, predicate, msg
+    end
+  
+    def assert_equal key, expect, value, msg
+      assert_primative key, expect == value, msg
+    end
+    
+    def assert_match key, regx, value, msg
+      regx = Regexp.new(regx.to_s) unless regx.instance_of? Regexp
+      assert_primative key, regx.match(value), msg
+    end
+  
+    def assert_nil key, value, msg
+      assert_primative key, value.nil?, msg
+    end
+  
+    def assert_not_nil key, value, msg
+      assert_primative key, !value.nil?, msg
+    end
+
+    def assert_raises key, exception = Exception, msg, &block
+      begin
+        block.call
+      rescue exception => e
+        pass key, msg
+        return true
+      end
+      fail key, msg
+    end
+
+    def refute key, predicate, msg
+      assert_primative key, !predicate, msg
+    end
+  
+    def refute_equal key, expect, value, msg
+      assert_primative key, expect != value, msg
+    end
+  
+    def pass key, msg
+      assert_primative key, true, msg
+    end
+
+    def fail key, msg
+      assert_primative key, false, msg
+    end
+
+    # public stats access
+
     # test_results returns the string string of all test messages
     def test_results
-      unless Stats.failure_count.nil? || Stats.failure_count == 0
-        str = "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">#{Stats.failure_count} Failed Test" + (Stats.failure_count == 1 ? '' : 's') + "</#{WRAP_ELT_TAG}>"
-      else
-        str = "<#{WRAP_ELT_TAG} style=\"color:#{GREEN}\">All Tests Passed</#{WRAP_ELT_TAG}>"
+      str = ''
+      Stats.test_messages.keys.sort.each do |key|
+        if failure_count(key) == 0
+          str += "<#{GROUP_ELT_TAG} style=\"color:#{GREEN}\">All #{test_count(key)} Tests for '#{key}' Passed\n"
+        else
+          str += "<#{GROUP_ELT_TAG} style=\"color:#{RED}\">#{failure_count(key)} of #{test_count(key)} Tests Failed '#{key}'\n"
+        end
+        str += Stats.test_messages[key].join("\n") + "\n" if Stats.test_messages
+        str += "</#{GROUP_ELT_TAG}>\n"
       end
-      Stats.test_messages ? str + Stats.test_messages.join("\n") : str
+      str
     end
     
-    def test_failures
-      return '' unless Stats.failure_count > 0
-      "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">Failed #{Stats.failure_count} tests</#{WRAP_ELT_TAG}>\n" + Stats.failure_messages.join("\n")
+    # failure_messages returns the failure_message hash
+    def failure_messages
+      Stats.failure_messages
     end
     
+    # test_messages returns the test_message hash
     def test_messages
       Stats.test_messages
     end
     
     # reset_tests zeros out failure messages and count
     def reset_tests
-      Stats.test_count = 0
-      Stats.failure_count = 0
-      Stats.failure_messages = []
-      Stats.test_messages = []
+      Stats.test_count = {}
+      Stats.failure_count = {}
+      Stats.failure_messages = {}
+      Stats.test_messages = {}
     end
 
-    # Assertions all return true or false. The last parameter is always the assertions
-    # message and is optional.
-    #
-    # assert(prediccate, msg) returns true if prediccate is true, else adds *msg*
-    # to failure messages and returns false
-    def assert predicate, msg
-      assert_primative predicate, msg
-    end
-  
-    def assert_equal expect, value, msg
-      assert_primative expect == value, msg
-    end
-    
-    def assert_match regx, value, msg
-      regx = Regexp.new(regx.to_s) unless regx.instance_of? Regexp
-      assert_primative regx.match(value), msg
-    end
-  
-    def assert_nil value, msg
-      assert_primative value.nil?, msg
-    end
-  
-    def assert_not_nil value, msg
-      assert_primative !value.nil?, msg
+    def failure_count(key)
+      Stats.failure_count ||= {}
+      Stats.failure_count[key] ||= 0
     end
 
-    def assert_raises exception = Exception, msg, &block
-      begin
-        block.call
-      rescue exception => e
-        return true
-      end
-      assert_primative false, msg
+    def test_count(key)
+      Stats.test_count ||= {}
+      Stats.test_count[key] ||= 0
     end
 
-    def refute predicate, msg
-      assert_primative !predicate, msg
-    end
-  
-    def refute_equal expect, value, msg
-      assert_primative expect != value, msg
-    end
-  
-    def pass msg
-      assert_primative true, msg
-    end
-
-    def fail msg
-      assert_primative false, msg
-    end
 
     # private methods
     private
-    def assert_primative predicate, msg
-      predicate ? test_passed("Passed: #{msg}") : test_failed("Failed: #{msg}")
+    def assert_primative key, predicate, msg
+      predicate ? test_passed(key, "Passed: #{msg}") : test_failed(key, "Failed: #{msg}")
       predicate
     end
     
     # test message handling
-    def test_failed(msg)
-      msg = "<#{WRAP_ELT_TAG} style=\"color:#{RED}\">#{msg}</#{WRAP_ELT_TAG}>"
-      add_failure(msg)
-      add_message(msg)
+    def test_failed(key, msg)
+      msg = "<#{RESULT_ELT_TAG} style=\"color:#{RED}\">#{msg}</#{RESULT_ELT_TAG}>"
+      add_failure(key, msg)
+      add_message(key, msg)
     end
     
-    def test_passed(msg)
-      msg = "<#{WRAP_ELT_TAG} style=\"color:#{GREEN}\">#{msg}</#{WRAP_ELT_TAG}>"
-      add_message(msg)
+    def test_passed(key, msg)
+      msg = "<#{RESULT_ELT_TAG} style=\"color:#{GREEN}\">#{msg}</#{RESULT_ELT_TAG}>"
+      add_message(key, msg)
     end
 
-    def add_failure(msg)
-      Stats.failure_messages ||= []
-      Stats.failure_count ||= 0
-      Stats.failure_messages.push(msg)
-      Stats.failure_count += 1
+    def add_failure(key, msg)
+      Stats.failure_messages ||= {}
+      Stats.failure_messages[key] ||= []
+      Stats.failure_messages[key].push(msg)
+
+      Stats.failure_count[key] ||= 0
+      Stats.failure_count[key] += + 1
     end
 
-    def add_message(msg)
-      Stats.test_messages ||= []
-      Stats.test_count ||= 0
-      Stats.test_messages.push(msg)
-      Stats.test_count += 1
+    def add_message(key, msg)
+      Stats.test_messages ||= {}
+      Stats.test_messages[key] ||= []
+      Stats.test_messages[key].push(msg)
+
+      Stats.test_count[key] ||= 0
+      Stats.test_count[key] += 1
     end
     
     def self.included(mod)
-      Stats.test_count = 0
-      Stats.failure_count = 0
-      Stats.failure_messages = []
-      Stats.test_messages = []
+      Stats.failure_count = {}
+      Stats.failure_messages = {}
+
+      Stats.test_count = {}
+      Stats.test_messages = {}
     end
   end
 end

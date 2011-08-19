@@ -32,7 +32,7 @@ class TestServerTestCase < Test::Unit::TestCase
   
   def test_run_all_tests
     ret = @tester.run_all_tests
-    assert ret, "@tester should run all tests and return true: #{@tester.test_failures}"
+    assert ret, "@tester should run all tests and return true: #{@tester.failure_messages}"
     # puts @tester.test_results
   end
   
