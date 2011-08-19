@@ -5,6 +5,28 @@ module TddDeploy
   module DeployTestMethods
     include TddDeploy::Assertions
     include TddDeploy::RunMethods
+
+    def deploy_test_process_running_on_all_hosts pid_file_path, success_msg = nil
+      deploy_test_process_running_on_all_hosts_as self.host_admin, pid_file_path, success_msg
+    end
+    
+    def deploy_test_process_running_on_all_hosts_as(userid, pid_file_path, success_msg = nil)
+      success_msg ||= "Process associated with #{pid_file_path} should be running"
+      ret = deploy_test_file_exists_on_all_hosts_as(userid, pid_file_path, success_msg + " no such pid file: #{pid_file_path}") ||
+      ret &= deploy_test_on_all_hosts_as(userid, /.+\n\s*\d+.*?\d\d:\d\d:\d\d/, "Process for #{pid_file_path} is running") do
+        "ps -p `cat #{pid_file_path} | awk '{ print $1 ; exit }'`"
+      end
+    end
+
+    def deploy_test_file_exists_on_all_hosts(path, success_msg = nil)
+      deploy_test_file_exists_on_all_hosts_as(self.host_admin, path, success_msg)
+    end
+
+    def deploy_test_file_exists_on_all_hosts_as(userid, path, success_msg = nil)
+      deploy_test_on_all_hosts_as(userid, /^\s*success\s*$/, success_msg || "path #{path} should exist") do
+        "test -s #{path} && echo success || echo fail"
+      end
+    end
     
     # deploy_test_on_all_hosts runs the command(s) return by '&block' on all hosts in self.hosts
     # as user 'self.host_admin'.
@@ -50,13 +72,13 @@ module TddDeploy
       
       prefix = "user@host: #{userid}@#{host}: #{success_msg}"
 
-      fail "#{prefix}: command generated error data:\n" +
+      fail host, "#{prefix}: command generated error data:\n" +
         "  command: #{cmd}\n stdout: '#{rsp}'\n stderr: '#{err_rsp}'" if err_rsp
 
       if rsp.nil?
-        fail "#{prefix}: stdout is empty for command '#{cmd}'"
+        fail host, "#{prefix}: stdout is empty for command '#{cmd}'"
         result &= false
-      elsif !assert_match match, rsp, prefix
+      elsif !assert_match host, match, rsp, prefix
         result &= false
       end
 

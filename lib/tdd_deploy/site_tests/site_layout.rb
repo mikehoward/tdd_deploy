@@ -8,39 +8,31 @@ module TddDeploy
   #
   #  The sub directories tested for are:
   #
-  #     *site* - a directory named for the name of the site.
-  #     *site*/releases - a standard directory used by Capistrano
-  #     *site*/nginx.conf - an nginx configuratino fragment which tells nginx to
+  #     *site*.d - a directory named for the name of the site.
+  #     *site*.d/releases - a standard directory used by Capistrano
+  #     site/nginx.conf - an nginx configuratino fragment which tells nginx to
   #      proxy the site's *thin* servers
-  #     *site*/monitrc - a monit configuration fragment which tells monit how to monitor
+  #     site/monitrc - a monit configuration fragment which tells monit how to monitor
   #      the site's *thin* servers.
   class SiteLayout < TddDeploy::Base
     def test_site_subdir
-      deploy_test_on_all_hosts_as self.site_user, "#{self.site}/", \
-          "directory /home/#{self.site_user}/#{self.site} should exist" do
-        'ls -F'
-      end
+      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{self.site}.d/"
     end
 
     def test_releases_subdir
-      deploy_test_on_all_hosts_as self.site_user, "releases", \
-          "directory /home/#{self.site_user}/#{self.site}/releases should exist" do
-        "ls -F #{self.site}"
-      end
+      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{self.site}.d/releases"
+    end
+
+    def test_site_dir_exists
+      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site'
     end
 
     def test_monitrc
-      deploy_test_on_all_hosts_as self.site_user, 'monitrc', \
-          "file /home/#{self.site_user}/monitrc should exist" do
-            'ls'
-      end
+      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site/monitrc'
     end
 
     def test_nginx_conf
-      deploy_test_on_all_hosts_as self.site_user, 'nginx.conf', \
-          "file /home/#{self.site_user}/nginx.conf should exist" do
-            'ls'
-      end
+      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site/nginx.conf'
     end
   end
 end

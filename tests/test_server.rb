@@ -6,22 +6,18 @@ require 'tdd_deploy/run_methods'
 class TestServerTestCase < Test::Unit::TestCase
   GEM_ROOT = File.expand_path('../..', __FILE__)
   BIN_DIR = File.join(GEM_ROOT, 'bin')
-  PORT = 8809
 
   include TddDeploy::RunMethods
   
   def setup
     require 'tdd_deploy/server'
-    @tester = TddDeploy::Server.new(PORT, :web_hosts => 'arch', :db_hosts => 'arch', 
-      :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2)
+    @tester = TddDeploy::Server.new(:web_hosts => 'arch', :db_hosts => 'arch', 
+      :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2,
+      :site => 'site', :site_user => 'site_user')
   end
   
   def teardown
     @tester = nil
-  end
-  
-  def test_tester_accessors
-    assert_equal PORT, @tester.port, "@tester.port should be #{PORT}"
   end
   
   def test_classes_array
@@ -32,7 +28,8 @@ class TestServerTestCase < Test::Unit::TestCase
   
   def test_run_all_tests
     ret = @tester.run_all_tests
-    assert ret, "@tester should run all tests and return true: #{@tester.failure_messages}"
+    failure_messages = "\n" + (@tester.failure_messages['arch'] || []).join("\n") + "\n"
+    assert ret, "@tester should run all tests and return true: returned: #{ret.inspect}: #{failure_messages}"
     # puts @tester.test_results
   end
   
