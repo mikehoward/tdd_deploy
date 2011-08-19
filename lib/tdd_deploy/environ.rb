@@ -78,6 +78,8 @@ module TddDeploy
       'local_admin_email' => :string,
 
       'site' => :string,
+      'site_url' => :string,
+      'site_path' => :string,
       'site_user' => :string,
 
       # 'hosts' => :list,
@@ -96,6 +98,8 @@ module TddDeploy
       'local_admin_email' => "local_admin@bogus.tld",
 
       'site' => "site",
+      'site_url' => 'www.site.com',                    # don't include the scheme
+      'site_path' => '/home/site_user/site/current',   # default for Capistrano
       'site_user' => "site_user",
 
       # 'hosts' => "bar,foo",

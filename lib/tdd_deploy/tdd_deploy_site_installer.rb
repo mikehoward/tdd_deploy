@@ -3,12 +3,6 @@
 
 require 'erb'
 
-# site_path = '/home/clovetech/clovetech/current'
-# site_url = 'www.clove.com'
-# site = 'clovetech'
-# site_num_servers = 3
-# site_base_port = 8000
-
 module TddDeploy
   # == TddDeploySiteInstaller
   #
