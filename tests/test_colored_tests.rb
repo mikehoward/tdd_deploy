@@ -35,13 +35,13 @@ class  ColoredResultTestCase < Test::Unit::TestCase
 
   def test_passing_result
     @tester.passing_test
-    test_results = @tester.test_results
-    assert_match 'style="color:#0c0"', test_results, "Passing Test result should be colored Green: color:#0c0"
+    formatted_test_results = @tester.formatted_test_results
+    assert_match 'style="color:#0c0"', formatted_test_results, "Passing Test result should be colored Green: color:#0c0"
   end
 
   def test_failing_result
     @tester.failing_test
-    test_results = @tester.test_results
-    assert_match 'style="color:#c00"', test_results, "Passing Test result should be colored Red: color:#c00"
+    formatted_test_results = @tester.formatted_test_results
+    assert_match 'style="color:#c00"', formatted_test_results, "Passing Test result should be colored Red: color:#c00"
   end
 end

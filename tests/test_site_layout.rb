@@ -23,7 +23,7 @@ class TestSiteLayoutTestCase < Test::Unit::TestCase
   end
   
   def test_site_configuration_dir_exists
-    assert @tester.test_site_dir_exists, @tester.test_results
+    assert @tester.test_site_dir_exists, @tester.formatted_test_results
   end
 
   def test_site_nginx_conf

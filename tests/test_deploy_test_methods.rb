@@ -65,14 +65,14 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
     tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, 'no-file-exists', 'generate an error' do
       'ls /usr/no-file-exists'
     end
-    # @tester.announce_test_results
+    # @tester.announce_formatted_test_results
     @tester.reset_tests
     refute tmp, "run as root should fail when accessing a non-existent file"
 
     tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, "/root", "should run as root on host #{@tester.hosts.first}" do
       'pwd'
     end
-    # @tester.announce_test_results
+    # @tester.announce_formatted_test_results
     @tester.reset_tests
     assert tmp, "should be able to run on #{@tester.hosts.first} as root"
   end
@@ -100,39 +100,39 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
   
   def test_file_exists_on_hosts_as
     result = @tester.deploy_test_file_exists_on_all_hosts_as "root", '/no-such-file', "/no-such-file exists on all hosts"
-    refute result, "test_file_exists_on_hosts_as works on all hosts as root: #{@tester.test_results}"
+    refute result, "test_file_exists_on_hosts_as works on all hosts as root: #{@tester.formatted_test_results}"
 
     result = @tester.deploy_test_file_exists_on_all_hosts_as "root", '/etc/passwd', "/etc/passwd exists on all hosts"
-    assert result, "test_file_exists_on_hosts_as works on all hosts as root: #{@tester.test_results}"
+    assert result, "test_file_exists_on_hosts_as works on all hosts as root: #{@tester.formatted_test_results}"
   end
   
   def test_file_exists_on_hosts
     result = @tester.deploy_test_file_exists_on_all_hosts '/no-such-file', "/no-such-file exists on all hosts"
-    refute result, "test_file_exists_on_hosts works on all hosts: #{@tester.test_results}"
+    refute result, "test_file_exists_on_hosts works on all hosts: #{@tester.formatted_test_results}"
 
     result = @tester.deploy_test_file_exists_on_all_hosts '/no-such-file'
-    refute result, "test_file_exists_on_hosts works on all hosts: #{@tester.test_results}"
+    refute result, "test_file_exists_on_hosts works on all hosts: #{@tester.formatted_test_results}"
 
     result = @tester.deploy_test_file_exists_on_all_hosts '/etc/passwd', "/etc/passwd exists on all hosts"
-    assert result, "test_file_exists_on_hosts works on all hosts: #{@tester.test_results}"
+    assert result, "test_file_exists_on_hosts works on all hosts: #{@tester.formatted_test_results}"
   end
   
   def test_process_running_on_all_hosts_as
     result = @tester.deploy_test_process_running_on_all_hosts_as 'root', '/var/run/no-such-pid', "no-such-pid is not running"
-    refute result, "test_process_running_on_hosts works on all host as roots: #{@tester.test_results}"
+    refute result, "test_process_running_on_hosts works on all host as roots: #{@tester.formatted_test_results}"
 
     result = @tester.deploy_test_process_running_on_all_hosts_as 'root','/var/run/crond.pid', "crond is running"
-    assert result, "test_process_running_on_hosts works on all hosts as root: #{@tester.test_results}"
+    assert result, "test_process_running_on_hosts works on all hosts as root: #{@tester.formatted_test_results}"
   end
   
   def test_process_running_on_all_hosts
     result = @tester.deploy_test_process_running_on_all_hosts '/var/run/no-such-pid', "no-such-pid is not running"
-    refute result, "test_process_running_on_hosts works on all hosts: #{@tester.test_results}"
+    refute result, "test_process_running_on_hosts works on all hosts: #{@tester.formatted_test_results}"
 
     result = @tester.deploy_test_process_running_on_all_hosts '/var/run/no-such-pid'
-    refute result, "test_process_running_on_hosts works on all hosts: #{@tester.test_results}"
+    refute result, "test_process_running_on_hosts works on all hosts: #{@tester.formatted_test_results}"
 
     result = @tester.deploy_test_process_running_on_all_hosts '/var/run/crond.pid', "crond is running"
-    assert result, "test_process_running_on_hosts works on all hosts: #{@tester.test_results}"
+    assert result, "test_process_running_on_hosts works on all hosts: #{@tester.formatted_test_results}"
   end
 end

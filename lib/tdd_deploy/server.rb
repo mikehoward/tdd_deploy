@@ -74,7 +74,7 @@ module TddDeploy
       query_string = "failed-tests=" + URI.escape(@test_classes_hash.keys.join(','))
       body = ["<h1>TDD Test Results:</h1>",
         "<p><a href=/>Re-Run All Tests</a> <a href=/?#{query_string}>Re-Run Failed Tests</a></p>",
-        self.test_results,
+        self.formatted_test_results,
         "#{env.inspect}"
         ]
       return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]

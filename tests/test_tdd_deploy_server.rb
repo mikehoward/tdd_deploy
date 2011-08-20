@@ -37,7 +37,7 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
   # def test_run_all_tests
   #   ret = @tester.run_all_tests
   #   assert ret, "@tester should run all tests and return true: #{@tester.failure_messages}"
-  #   # puts @tester.test_results
+  #   # puts @tester.formatted_test_results
   # end
   # 
   # def test_rack_interface
