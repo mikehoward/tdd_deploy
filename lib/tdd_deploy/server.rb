@@ -55,11 +55,14 @@ module TddDeploy
       end
 
       ret = true
+      @failed_tests = []
       test_classes.each do |klass|
         obj = klass.new
         # puts "#{klass}.instance_methods: #{klass.instance_methods(false)}"
         klass.instance_methods(false).each do |func|
-          ret &= obj.send func.to_sym
+          test_result = obj.send func.to_sym
+          @failed_tests.push(func) unless test_result
+          ret &= test_result
         end
       end
       ret
@@ -77,11 +80,15 @@ module TddDeploy
       
       template.result(binding)
     end
+    
+    def new_query_string
+      str = "failed-tests=" + URI.escape(@failed_tests.join(',')) unless @failed_tests.nil? || @failed_tests.empty?
+    end
 
     def call(env)
       query_hash = parse_query_string(env['QUERY_STRING'])
       run_all_tests query_hash['failed-tests']
-      query_string = "failed-tests=" + URI.escape(@test_classes_hash.keys.join(','))
+      query_string = new_query_string
       body = ["<h1>TDD Test Results:</h1>",
         "<p><a href=/>Re-Run All Tests</a> <a href=/?#{query_string}>Re-Run Failed Tests</a></p>",
         render_results,

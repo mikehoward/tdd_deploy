@@ -7,23 +7,36 @@
 	<meta name="generator" content="TextMate http://macromates.com/">
 	<meta name="author" content="Mike">
 	<style type="text/css" media="screen">
+	  body {
+	    font-family: sans-serif;
+	  }
+	  h1 { font-size: 1.4em;}
+	  h2 { font-size: 1.2em;}
+	  .env-summary {
+	    padding: 10px;
+	    border: 3px solid black;
+	    background:#ddd;
+	    margin: 1em;
+	  }
+    .env-summary table { width: 100%;}
+	  .env-summary th { text-align: left;}
+	  .env-key { width: 20em;}
+	  .env-val {}
 	 .test-result-group {
 	   padding: 10px;
 	   margin: 10px;
-	   border: solid 1px black;
+/*     border: solid 1px black;*/
 	   background: white;
 	 }
-	 .test-result-success {}
-	 .test-result-failure {}
-	 .test-result-summary-success {
-	   color: #080;
+	 .test-result {
+	   padding: 1em;
+	   margin: 1em;
 	 }
-	 .test-result-summary-failure {
-	   color: #800;
-	 }
-	 .test-result-detail {
-	   list-style: none;
-	   
+	 .test-result-success { background: #dfd;border: 3px #080 solid; }
+	 .test-result-failure { background: #fee; border: 3px #800 solid;}
+	 .test-result-summary-success {  color: #080; }
+	 .test-result-summary-failure {  color: #800; }
+	 .test-result-detail li { list-style: none;	   
 	 }
 	 .test-result-detail-success {
 	   color: #080;
@@ -31,32 +44,48 @@
 	 .test-result-detail-failure {
 	   color: #800;
 	 }
+	 .odd { background: #eee;}
+	 .even { background: #ccc;}
 	</style>
 	<!-- Date: 2011-08-20 -->
 </head>
 <body>
   <h1>TddDeloy Test Results:</h1>
   
+  <div class="env-summary">
+    <h2>Host / Site environment</h2>
+    <table>
+      <% odd_even = 'even' %>
+      <% env_hash.keys.sort.each do |k| %>
+        <% odd_even = odd_even == 'even' ? 'odd' : 'even' %>
+        <tr class="<%= odd_even %>"><th class="env-key"><%= k %></th> <td class="env-value"><%= env_hash[k] %></td></tr>
+      <% end %>
+    </table>
+  </div>
+  
+  <% test_result_index = 0 %>
   <% test_results.each do |key, messages| %>
-    <h2 id="test-result-<%= key %>" class="test-result-group">Results for '<%= key %>'</h2>
     <% if failure_count(key) == 0 %>
-    <div class="test-result-success">
+    <div class="test-result test-result-success">
+    <h2 id="test-result-<%= key %>"><span  class="test-result-group">Results for '<%= key %>'</span></h2>
     <p class="test-result-summary-success">All Tests Passed</p>
     <% else %>
-    <div class="test-result-failure">
+    <div class="test-result test-result-failure">
+      <h2 id="test-result-<%= key %>"><span  class="test-result-group">Results for '<%= key %>'</span></h2>
     <p class="test-result-summary-failure"><%= failure_count(key) %> of <%= test_count(key) %> Failed</p>
     <% end %>
-    <ul>
-      <% test_result_index = 0 %>
+    <ul class="test-result-detail">
+      <% odd_even = 'even' %>
       <% messages.each do |msg| %>
       <% result, success_msg = msg %>
-      <% test_result_index += 1  %>
-      <li id="test-result-detail-<%= test_result_index %>" class="<%= result ? 'test-result-detail-success' : 'test-result-detail-fail' %>">
+      <% odd_even = odd_even == 'even' ? 'odd' : 'even' %>
+      <% test_result_index += 1 %>
+      <li id="test-result-detail-<%= test_result_index %>" class="<%= odd_even %> <%= result ? 'test-result-detail-success' : 'test-result-detail-failure' %>">
         <%= success_msg %>
       </li>
       <% end %>
     </ul>
-    <div> <!-- test-result for <%= key %> -->
+    </div> <!-- test-result for <%= key %> -->
   <% end %>
 </body>
 </html>

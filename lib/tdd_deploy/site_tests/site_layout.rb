@@ -34,5 +34,17 @@ module TddDeploy
     def test_nginx_conf
       deploy_test_file_exists_on_all_hosts_as self.site_user, 'site/nginx.conf'
     end
+
+    def test_thin_conf
+      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{site_path}/config/thin.conf"
+    end
+
+    def test_one_thin_server_conf
+      deploy_test_file_exists_on_all_hosts_as self.site_user, '#{site_path}/one_thin_server.conf'
+    end
+
+    def test_one_thin_server
+      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site/one_thin_server'
+    end
   end
 end

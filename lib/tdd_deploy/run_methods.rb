@@ -5,25 +5,25 @@ module TddDeploy
     # runs the output of the block on all hosts defined in self.hosts as user self.host_admin.
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
     # Hash keys are host names as strings.
-    def run_on_all_hosts(&block)
-      run_on_all_hosts_as self.host_admin, &block
+    def run_on_all_hosts(cmd = nil, &block)
+      run_on_all_hosts_as self.host_admin, cmd, &block
     end
 
     # Runs the output of the block on all hosts defined in self.hosts as user 'userid'.
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
     # Hash keys are host names as strings.
-    def run_on_all_hosts_as(userid, &block)
+    def run_on_all_hosts_as(userid, cmd = nil, &block)
       results = {}
       self.hosts.each do |host|
-        results[host] = run_in_ssh_session_as(userid, host, &block)
+        results[host] = run_in_ssh_session_as(userid, host, cmd, &block)
       end
       results
     end
 
     # Runs the command secified in &block on 'host' as user 'self.host_admin'.
     # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session(host, &block)
-      run_in_ssh_session_as(self.host_admin, host, &block)
+    def run_in_ssh_session(host, cmd = nil, &block)
+      run_in_ssh_session_as(self.host_admin, host, cmd, &block)
     end
 
     # Runs the command secified in &block on 'host' as user 'userid'.
