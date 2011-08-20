@@ -20,6 +20,20 @@ module TddDeploy
       results
     end
 
+    def copy_file_to_remote(host, src, dst = nil)
+      copy_file_to_remote_as self.host_admin, host, src, dst
+    end
+
+    def copy_file_to_remote_as(userid, host, src, dst = nil)
+      require 'net/sftp'
+      raise ArgumentError.new("file name cannot be empty") if src.empty?
+      
+      # copy using blocking version
+      Net::SFTP.start(host, userid) do |sftp|
+        sftp.upload!(src, dst || src)
+      end
+    end
+
     # Runs the command secified in &block on 'host' as user 'self.host_admin'.
     # Returns an array [stdout, stderr] returned from the command.
     def run_in_ssh_session(host, &block)
@@ -28,17 +42,18 @@ module TddDeploy
 
     # Runs the command secified in &block on 'host' as user 'userid'.
     # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session_as(userid, host, &block)
+    def run_in_ssh_session_as(userid, host, cmd = nil, &block)
       login = "#{userid}@#{host}"
       match = Regexp.new(match) if match.is_a? String
-      raise ArgumentError, 'match expression cannot be empty' if match =~ ''
+      raise ArgumentError.new('match expression cannot be empty') if match =~ ''
 
       rsp = nil
       err_rsp = nil
-      cmd = block.call(host, login, userid)
+      cmd = block.call if block_given?
+      raise ArgumentError.new('cmd cannot be empty') if cmd.empty?
 
       begin
-        ssh_session = Net::SSH.start(host, userid, :timeout => self.ssh_timeout)
+        ssh_session = Net::SSH.start(host, userid, :timeout => self.ssh_timeout, :languages => 'en')
         raise "Unable to establish connecton to #{host} as #{userid}" if ssh_session.nil?
 
         ssh_session.open_channel do |channel|
@@ -52,8 +67,9 @@ module TddDeploy
               err_rsp ||= ''
               err_rsp += data.to_s
             end
-
           end
+          
+          channel.wait
         end
 
         # must do this or the channel only runs once
@@ -66,6 +82,7 @@ module TddDeploy
       end
       [rsp, err_rsp, cmd]
     end
+
   
     # run locally runs a comman locally and returns the output of stdout, stderr, and the command
     # run in a 3 element array

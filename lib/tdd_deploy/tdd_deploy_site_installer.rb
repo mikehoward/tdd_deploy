@@ -2,6 +2,7 @@
 #  -*- ruby-mode -*-
 
 require 'erb'
+require 'tdd_deploy/base'
 
 module TddDeploy
   # == TddDeploySiteInstaller
@@ -19,7 +20,7 @@ module TddDeploy
     #  current environment context, and writes the renderings to the appropriate
     #  files in app/sites and app/config
     def install
-      erb_dir = File.expand_path('../../site-erb', __FILE__)
+      erb_dir = File.expand_path('../site-erb', __FILE__)
 
       Dir.new(erb_dir).each do |subdir|
         subdir_path = File.join(erb_dir, subdir)

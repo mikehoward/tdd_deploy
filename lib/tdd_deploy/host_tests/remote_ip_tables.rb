@@ -25,7 +25,9 @@ module TddDeploy
         # Linode seems to refuse to block 21 - FTP control
         #  [20, 21, 23, 25, 53, 5432, 2812].each do |port|
         [20, 23, 25, 53, 5432, 2812].each do |port|
-          udp_socket = UDPSocket.new(host, port) rescue 'failed'
+          # udp_socket = UDPSocket.new(host, port) rescue 'failed'
+          udp_socket = UDPSocket.new
+          udp_socket.bind(host, port) rescue 'failed to bind'
           assert_equal host, 'failed', udp_socket, "Host: #{host}: Should not be able to connect via udp to port #{port}"
         end
       end

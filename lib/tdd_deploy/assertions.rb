@@ -1,9 +1,10 @@
 module TddDeploy
   module Assertions
-    GREEN = '#0c0'
-    RED   = '#c00'
+    GREEN = '#080'
+    RED   = '#800'
     GROUP_ELT_TAG = 'ul'
-    RESULT_ELT_TAG = 'p'
+    HEADER_ELT_TAG = 'h2'
+    RESULT_ELT_TAG = 'li'
     # TddDeploy re-implements popular assertions so that they can be used
     # in multi-host testing.
     #
@@ -85,9 +86,9 @@ module TddDeploy
       str = ''
       Stats.test_messages.keys.sort.each do |key|
         if failure_count(key) == 0
-          str += "<#{GROUP_ELT_TAG} style=\"color:#{GREEN}\">All #{test_count(key)} Tests for '#{key}' Passed\n"
+          str += "<#{GROUP_ELT_TAG}>\n<#{HEADER_ELT_TAG} style=\"color:#{GREEN}\">All #{test_count(key)} Tests for '#{key}' Passed</#{HEADER_ELT_TAG}>\n"
         else
-          str += "<#{GROUP_ELT_TAG} style=\"color:#{RED}\">#{failure_count(key)} of #{test_count(key)} Tests Failed '#{key}'\n"
+          str += "<#{GROUP_ELT_TAG}>\n<#{HEADER_ELT_TAG} style=\"color:#{RED}\">#{failure_count(key)} of #{test_count(key)} Tests Failed '#{key}'</#{HEADER_ELT_TAG}>\n"
         end
         str += Stats.test_messages[key].join("\n") + "\n" if Stats.test_messages
         str += "</#{GROUP_ELT_TAG}>\n"
