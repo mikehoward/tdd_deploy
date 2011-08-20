@@ -1,5 +1,7 @@
 # TddDeploy
 
+NOTE: version 0.1.0 is not useable
+
 **This is a prototype. It works, but is ugly and almost certainly the wrong design.**
 
 *I think there is room in host provisioning and site installation for TDD tools which

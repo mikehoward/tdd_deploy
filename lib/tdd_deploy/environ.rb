@@ -99,13 +99,13 @@ module TddDeploy
 
       'site' => "site",
       'site_url' => 'www.site.com',                    # don't include the scheme
-      'site_path' => '/home/site_user/site/current',   # default for Capistrano
+      'site_path' => '/home/site_user/site.d/current',   # default for Capistrano
       'site_user' => "site_user",
 
       # 'hosts' => "bar,foo",
-      'balance_hosts' => '',
-      'db_hosts' => 'bar,foo',
-      'web_hosts' => 'bar,foo',
+      'balance_hosts' => 'arch',
+      'db_hosts' => 'arch',
+      'web_hosts' => 'arch',
     }
     
     def env_types
@@ -128,9 +128,10 @@ module TddDeploy
         when :list then DataCache.env_hash[k] = self.str_to_list(v)
         else
           if k == 'hosts'
-            if DataCache.env_hash['web_hosts'] == DataCache.env_hash['db_hosts']
+            if DataCache.env_hash['web_hosts'] == DataCache.env_hash['db_hosts'] &&  DataCache.env_hash['web_hosts'] == DataCache.env_hash['balance_hosts']
               DataCache.env_hash['web_hosts'] =
-                DataCache.env_hash['db_hosts'] = self.str_to_list(v)
+                DataCache.env_hash['db_hosts'] =
+                  DataCache.env_hash['balance_hosts'] = self.str_to_list(v)
             else
               raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
               # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
@@ -235,7 +236,8 @@ module TddDeploy
     def hosts=(list)
       if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
         self.web_hosts =
-          self.db_hosts = self.str_to_list(list)
+          self.db_hosts =
+            self.balance_hosts = self.str_to_list(list)
       else
         raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
       end
