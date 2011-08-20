@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 $:.unshift File.expand_path('../lib', __FILE__)
 
+require 'uri'
 require 'tdd_deploy'
 
 module TddDeploy
@@ -31,16 +32,29 @@ module TddDeploy
           end
         end
       end
+
       self.test_classes = TddDeploy::Base.children - [self.class]
+
+      @test_classes_hash = {}
+      self.test_classes.each do |klass|
+        @test_classes_hash[klass.to_s] = klass
+      end
     end
     
-    def run_all_tests
+    def run_all_tests(test_group = nil)
       load_all_tests
       
       reset_tests
 
+      test_classes = if test_group && defined?(@test_classes_hash)
+        failed_test_keys = test_group.split(',')
+        @test_classes_hash.select { |k, v| failed_test_keys.include? k }.values
+      else
+        self.test_classes
+      end
+
       ret = true
-      self.test_classes.each do |klass|
+      test_classes.each do |klass|
         obj = klass.new
         # puts "#{klass}.instance_methods: #{klass.instance_methods(false)}"
         klass.instance_methods(false).each do |func|
@@ -50,9 +64,19 @@ module TddDeploy
       ret
     end
     
+    def parse_query_string(query_string)
+      Hash[query_string.split('&').map { |tmp| key,value = tmp.split('='); [key, URI.decode(value)] }]
+    end
+
     def call(env)
-      run_all_tests
-      body = ["<h1>TDD Test Results:</h1>", self.test_results]
+      query_hash = parse_query_string(env['QUERY_STRING'])
+      run_all_tests query_hash['failed-tests']
+      query_string = "failed-tests=" + URI.escape(@test_classes_hash.keys.join(','))
+      body = ["<h1>TDD Test Results:</h1>",
+        "<p><a href=/>Re-Run All Tests</a> <a href=/?#{query_string}>Re-Run Failed Tests</a></p>",
+        self.test_results,
+        "#{env.inspect}"
+        ]
       return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]
     end
   end

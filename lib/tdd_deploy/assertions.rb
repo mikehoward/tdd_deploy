@@ -85,18 +85,25 @@ module TddDeploy
     def test_results
       str = ''
       Stats.test_messages.keys.sort.each do |key|
-        if failure_count(key) == 0
-          str += "<#{GROUP_ELT_TAG}>\n<#{HEADER_ELT_TAG} style=\"color:#{GREEN}\">All #{test_count(key)} Tests for '#{key}' Passed</#{HEADER_ELT_TAG}>\n"
-        else
-          str += "<#{GROUP_ELT_TAG}>\n<#{HEADER_ELT_TAG} style=\"color:#{RED}\">#{failure_count(key)} of #{test_count(key)} Tests Failed '#{key}'</#{HEADER_ELT_TAG}>\n"
-        end
-        str += Stats.test_messages[key].join("\n") + "\n" if Stats.test_messages
-        str += "</#{GROUP_ELT_TAG}>\n"
+        str += test_results_for_key(key)
       end
       str
     end
     
-    # failure_messages returns the failure_message hash
+    def test_results_for_key key
+      str = "<#{GROUP_ELT_TAG} class=\"test-result-group\" id=\"test-result-group-#{key}\">\n<#{HEADER_ELT_TAG} class=\"test-result-header\" id=\"test-result-header-#{key}\">Results for '#{key}'</#{HEADER_ELT_TAG}>\n"
+      if failure_count(key) == 0
+        str += "<#{RESULT_ELT_TAG} class=\"test-result-summary-success\" id=\"test-result-summary-#{key}\">All #{test_count(key)} Tests Passed</#{RESULT_ELT_TAG}>\n"
+      else
+        str += "<#{RESULT_ELT_TAG} class=\"test-result-summary-failure\" id=\"test-result-summary-#{key}\">#{failure_count(key)} of #{test_count(key)} Tests Failed</#{RESULT_ELT_TAG}>\n"
+      end
+      toggle = true
+      tmp = Stats.test_messages[key].map { |msg| toggle = !toggle ; "<#{RESULT_ELT_TAG} class=\"#{(toggle ? "even" : "odd")}\">#{msg}</#{RESULT_ELT_TAG}>\n" }
+      str += tmp.join("\n") + "\n" if Stats.test_messages
+      str + "</#{GROUP_ELT_TAG}>\n"
+    end
+
+   # failure_messages returns the failure_message hash
     def failure_messages
       Stats.failure_messages
     end
@@ -134,13 +141,13 @@ module TddDeploy
     
     # test message handling
     def test_failed(key, msg)
-      msg = "<#{RESULT_ELT_TAG} style=\"color:#{RED}\">#{msg}</#{RESULT_ELT_TAG}>"
+      msg = "<span class=\"test-result-detail test-result-detail-failure test-result-red\">#{msg}</span>"
       add_failure(key, msg)
       add_message(key, msg)
     end
     
     def test_passed(key, msg)
-      msg = "<#{RESULT_ELT_TAG} style=\"color:#{GREEN}\">#{msg}</#{RESULT_ELT_TAG}>"
+      msg = "<span class=\"test-result-detail test-result-detail-success test-result-green\">#{msg}</span>"
       add_message(key, msg)
     end
 

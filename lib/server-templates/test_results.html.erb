@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>TddDeploy for <%= site %></title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Mike">
+	<style type="text/css" media="screen">
+	 .test-result-group {
+	   padding: 10px;
+	   margin: 10px;
+	   border: solid 1px black;
+	   background: white;
+	 }
+	 .test-result-summary-success {
+	   color: #080;
+	 }
+	 .test-result-summary-failure {
+	   color: #800;
+	 }
+	 .test-result-detail {
+	   list-style: none;
+	   
+	 }
+	 .test-result-detail-success {
+	   color: #080;
+	 }
+	 .test-result-detail-failure {
+	   color: #800;
+	 }
+	</style>
+	<!-- Date: 2011-08-20 -->
+</head>
+<body>
+  <h1>TddDeloy Test Results:</h1>
+  
+  <% test_messages.each do |key, messages| %>
+    <h2 id="test-result-<%= key %>" class="test-result-group">Results for '<%= key %>'</h2>
+    
+    <ul>
+      <% messages.each do |msg| %>
+      <li>
+        
+      </li>
+      <% end %>
+    </ul>
+  <% pend %>
+</body>
+</html>
