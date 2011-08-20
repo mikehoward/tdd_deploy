@@ -81,6 +81,8 @@ module TddDeploy
 
     # public stats access
 
+    # don't use formatted_test_results or formatted_test_results_for_key
+    # use the supplied test_results.html.erb template instead
     # formatted_test_results returns the string string of all test messages
     def formatted_test_results
       str = ''
@@ -115,7 +117,7 @@ module TddDeploy
 
     def failure_count(key)
       return nil unless Stats.test_results[key]
-      Stats.test_results[key].select { |tmp| tmp[0] }.length
+      failure_messages(key).length
     end
 
     def test_count(key)
@@ -123,6 +125,13 @@ module TddDeploy
       Stats.test_results[key].length
     end
 
+    def test_messages(key)
+      Stats.test_results[key]
+    end
+    
+    def failure_messages(key)
+      Stats.test_results[key].select { |tmp| !tmp[0] }
+    end
 
     # private methods
     private

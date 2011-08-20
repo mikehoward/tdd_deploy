@@ -13,6 +13,8 @@
 	   border: solid 1px black;
 	   background: white;
 	 }
+	 .test-result-success {}
+	 .test-result-failure {}
 	 .test-result-summary-success {
 	   color: #080;
 	 }
@@ -37,14 +39,24 @@
   
   <% test_results.each do |key, messages| %>
     <h2 id="test-result-<%= key %>" class="test-result-group">Results for '<%= key %>'</h2>
-    
+    <% if failure_count(key) == 0 %>
+    <div class="test-result-success">
+    <p class="test-result-summary-success">All Tests Passed</p>
+    <% else %>
+    <div class="test-result-failure">
+    <p class="test-result-summary-failure"><%= failure_count(key) %> of <%= test_count(key) %> Failed</p>
+    <% end %>
     <ul>
+      <% test_result_index = 0 %>
       <% messages.each do |msg| %>
-      <li>
-        
+      <% result, success_msg = msg %>
+      <% test_result_index += 1  %>
+      <li id="test-result-detail-<%= test_result_index %>" class="<%= result ? 'test-result-detail-success' : 'test-result-detail-fail' %>">
+        <%= success_msg %>
       </li>
       <% end %>
     </ul>
-  <% pend %>
+    <div> <!-- test-result for <%= key %> -->
+  <% end %>
 </body>
 </html>

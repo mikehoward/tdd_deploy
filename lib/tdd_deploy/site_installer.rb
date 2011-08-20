@@ -25,9 +25,10 @@ module TddDeploy
       Dir.new(erb_dir).each do |subdir|
         subdir_path = File.join(erb_dir, subdir)
         Dir.new(subdir_path).each do |fname|
-          next unless fname =~ /\.erb$/
+          file_path = File.join(subdir_path, fname)
+          next unless fname =~ /\.erb$/ && File.exists?(file_path)
 
-          f = File.new(File.join(erb_dir, fname))
+          f = File.new(file_path)
           # '>' removes new-lines from lines ending in %>
           # template = ERB.new f.read, nil, '>'
           # '>' removes new-lines from lines starting with <% and ending in %>

@@ -20,8 +20,4 @@ class  RemoteIptablesTestCase < Test::Unit::TestCase
   def test_tcp_some_blocked_ports
     assert @tester.tcp_some_blocked_ports
   end
-
-  def test_udp_some_blocked_ports
-    assert @tester.udp_some_blocked_ports
-  end
 end

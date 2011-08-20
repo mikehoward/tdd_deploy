@@ -1,7 +1,7 @@
 $:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'test/unit'
-require 'tdd_deploy/tdd_deploy_site_installer'
+require 'tdd_deploy/site_installer'
 
 class TestTddDeploySiteInstallerrTestCase < Test::Unit::TestCase
   def setup

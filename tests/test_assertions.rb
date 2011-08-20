@@ -18,15 +18,19 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
   end
   
   def test_pass_passes
-    assert @assertion_helper.pass('key', 'assertion message'), 'pass passes'
-    assert_match /assertion message/, @assertion_helper.formatted_test_results, 'pass copies assertion message'
-    assert_match /Pass/, @assertion_helper.formatted_test_results, 'pass records passing message'
+    assert @assertion_helper.pass('key', 'passing message'), 'pass passes'
+    assert @assertion_helper.test_results['key'].is_a?(Array), "test_results[key] should be an Array"
+    assert_equal 1, @assertion_helper.test_results['key'].length, "There should be a test_results[key]"
+    assert_equal true, @assertion_helper.test_results['key'].first[0], "pass should be a passing result"
+    assert_match /passing message/, @assertion_helper.test_results['key'].first[1], "pass should have the right success message"
   end
 
   def test_fail_fails
-    refute @assertion_helper.fail('key', 'assertion message'), 'fail fails'
-    assert_match /assertion message/, @assertion_helper.formatted_test_results, 'fail copies assertion message'
-    assert_match /Fail/, @assertion_helper.formatted_test_results, 'fail records failing message in test_results'
+    refute @assertion_helper.fail('key', 'failing message'), 'fail fails'
+    assert @assertion_helper.test_results['key'].is_a?(Array), "test_results[key] should be an Array"
+    assert_equal 1, @assertion_helper.test_results['key'].length, "There should be a test_results[key]"
+    assert_equal false, @assertion_helper.test_results['key'].first[0], "pass should be a passing result"
+    assert_match /failing message/, @assertion_helper.test_results['key'].first[1], "pass should have the right success message"
   end
   
   def test_keying_tests
@@ -41,22 +45,23 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
     
     assert_equal 1, @assertion_helper.test_count('key2'), "one test recorded under 'key2'"
     assert_equal 1, @assertion_helper.failure_count('key2'), "1 failure recorded under 'key2'"
-
-    assert_nil @assertion_helper.failure_messages['key1'], "falure_messages['key1'] is nil"
-    assert_not_equal [], @assertion_helper.failure_messages['key2'], "falure_messages['key1'] is not an empty array"
+  
+    assert_equal [], @assertion_helper.failure_messages('key1'), "falure_messages('key1') is nil"
+    assert_not_equal [], @assertion_helper.failure_messages('key2'), "falure_messages('key1') is not an empty array"
     
     assert_no_match(/key1/, @assertion_helper.test_results['key2'].join('\n'), 'test messages for key2 do not contain key1')
   end
-
+  
   def test_assert_true_passes
     assert @assertion_helper.assert('key', true, 'true is true'), 'true tests true'
+    assert @assertion_helper.test_messages('key').first[0], "asserting 'true' passes"
     assert_match(/Pass/i, @assertion_helper.formatted_test_results, "test messagess should include 'Pass'")
   end
   
   def test_assert_false_fails
     refute @assertion_helper.assert('key', false, 'true is true'), "false tests false"
+    refute @assertion_helper.test_messages('key').first[0], "asserting 'false' fails"
     assert_match /Fail/i, @assertion_helper.formatted_test_results, "test messages should include 'Fail'"
-    assert_match /1 of 1 Tests Failed/i, @assertion_helper.formatted_test_results, "test messages should count 1 failure (#{@assertion_helper.test_results})"
   end
   
   def test_assert_equal

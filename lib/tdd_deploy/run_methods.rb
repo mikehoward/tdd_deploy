@@ -20,20 +20,6 @@ module TddDeploy
       results
     end
 
-    def copy_file_to_remote(host, src, dst = nil)
-      copy_file_to_remote_as self.host_admin, host, src, dst
-    end
-
-    def copy_file_to_remote_as(userid, host, src, dst = nil)
-      require 'net/sftp'
-      raise ArgumentError.new("file name cannot be empty") if src.empty?
-      
-      # copy using blocking version
-      Net::SFTP.start(host, userid) do |sftp|
-        sftp.upload!(src, dst || src)
-      end
-    end
-
     # Runs the command secified in &block on 'host' as user 'self.host_admin'.
     # Returns an array [stdout, stderr] returned from the command.
     def run_in_ssh_session(host, &block)

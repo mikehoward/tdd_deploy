@@ -28,8 +28,8 @@ class TestServerTestCase < Test::Unit::TestCase
   
   def test_run_all_tests
     ret = @tester.run_all_tests
-    failure_messages = "\n" + (@tester.failure_messages['arch'] || []).join("\n") + "\n"
-    assert ret, "@tester should run all tests and return true: returned: #{ret.inspect}: #{failure_messages}"
+    failures = "\n" + (@tester.failure_messages('arch') || []).join("\n") + "\n"
+    assert ret, "@tester should run all tests and return true: returned: #{ret.inspect}: #{failures}"
     # puts @tester.formatted_test_results
   end
   

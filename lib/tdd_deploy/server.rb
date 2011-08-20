@@ -10,6 +10,7 @@ module TddDeploy
     HOST_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'host_tests')
     SITE_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'site_tests')
     LOCAL_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'local_tests')
+    TEMPLATE_PATH = File.join(LIB_DIR, 'tdd_deploy', 'server-templates', 'test_results.html.erb')
 
     attr_accessor :test_classes
   
@@ -65,7 +66,16 @@ module TddDeploy
     end
     
     def parse_query_string(query_string)
+      return '' unless query_string.is_a? String
       Hash[query_string.split('&').map { |tmp| key,value = tmp.split('='); [key, URI.decode(value)] }]
+    end
+    
+    def render_results
+      f = File.new(TEMPLATE_PATH)
+      template = ERB.new f.read, nil, '<>'
+      f.close
+      
+      template.result(binding)
     end
 
     def call(env)
@@ -74,7 +84,7 @@ module TddDeploy
       query_string = "failed-tests=" + URI.escape(@test_classes_hash.keys.join(','))
       body = ["<h1>TDD Test Results:</h1>",
         "<p><a href=/>Re-Run All Tests</a> <a href=/?#{query_string}>Re-Run Failed Tests</a></p>",
-        self.formatted_test_results,
+        render_results,
         "#{env.inspect}"
         ]
       return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]
