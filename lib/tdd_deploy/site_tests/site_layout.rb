@@ -16,35 +16,35 @@ module TddDeploy
   #      the site's *thin* servers.
   class SiteLayout < TddDeploy::Base
     def test_site_subdir
-      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{self.site}.d/"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_path}"
     end
 
     def test_releases_subdir
-      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{self.site}.d/releases"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_path}/../releases"
     end
 
     def test_site_dir_exists
-      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site'
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_path}/site"
     end
 
     def test_monitrc
-      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site/monitrc'
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_path}/site/monitrc"
     end
 
     def test_nginx_conf
-      deploy_test_file_exists_on_all_hosts_as self.site_user, 'site/nginx.conf'
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_path}/site/nginx.conf"
     end
 
     def test_thin_conf
-      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{site_path}/config/thin.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_path}/config/thin.conf"
     end
 
     def test_one_thin_server_conf
-      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{site_path}/config/one_thin_server.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_path}/config/one_thin_server.conf"
     end
 
     def test_one_thin_server
-      deploy_test_file_exists_on_all_hosts_as self.site_user, "#{site_path}/site/one_thin_server"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_path}/site/one_thin_server"
     end
   end
 end

@@ -1,0 +1,6 @@
+#! /bin/sh
+
+PORT=$1
+
+cd <%= site_path %>
+bundle exec thin --config ./config/thin_one_server.config --port $PORT start

@@ -33,6 +33,17 @@ class TestSiteLayoutTestCase < Test::Unit::TestCase
   def test_site_monitrc
     assert @tester.test_monitrc, "Directory /home/#{@tester.site_user}/site/monitrc should exist"
   end
+  
+  def test_test_thin_conf
+    assert @tester.test_thin_conf, @tester.formatted_test_results
+  end
+
+  def test_test_one_thin_server_conf
+    assert @tester.test_one_thin_server_conf, @tester.formatted_test_results
+  end
+
+  def test_test_one_thin_server
+    assert @tester.test_one_thin_server, @tester.formatted_test_results
+  end
+  
 end
-
-

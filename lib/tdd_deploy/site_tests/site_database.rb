@@ -7,7 +7,7 @@ module TddDeploy
   class SiteDatabase < TddDeploy::Base
 
     def test_site_db_defined
-      deploy_test_on_all_hosts "#{self.site}\s*\|\s*#{self.site}", "database for #{self.site} should exist" do
+      deploy_test_on_hosts_as self.site_user, self.db_hosts, "#{self.site}\s*\|\s*#{self.site}", "database for #{self.site} should exist" do
         "psql --command='\\l' postgres postgres"
       end
     end

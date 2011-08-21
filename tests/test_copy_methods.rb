@@ -18,7 +18,7 @@ class RunMethodsTestCase < Test::Unit::TestCase
     result = copy_string_to_remote_file_as 'site_user', 'arch', str, 'test-file'
     assert result, "copy_string_to_remote_file_as returns true on success"
     
-    stdout, stderr, cmd = run_in_ssh_session_as('site_user', 'arch', 'cat test-file')
+    stdout, stderr, cmd = run_in_ssh_session_on_host_as('site_user', 'arch', 'cat test-file')
     assert_equal str, stdout, "test-file should exist on arch"
     assert_nil stderr, "stderr should be nil"
   end
@@ -43,13 +43,13 @@ class RunMethodsTestCase < Test::Unit::TestCase
       tmp_file.close
       result = copy_file_to_remote_as 'site_user', 'arch', tmp_file.path, 'foo'
     
-      stdout, stderr, cmd = run_in_ssh_session_as 'site_user', 'arch', 'cat foo'
+      stdout, stderr, cmd = run_in_ssh_session_on_host_as 'site_user', 'arch', 'cat foo'
       assert_equal input_text, stdout, "remote file should contain input_text"
 
       assert result, "copy should return true"
     ensure
       tmp_file.unlink
-      run_in_ssh_session_as 'site_user', 'arch', 'rm -f foo'
+      run_in_ssh_session_on_host_as 'site_user', 'arch', 'rm -f foo'
     end
   end
   
@@ -62,13 +62,13 @@ class RunMethodsTestCase < Test::Unit::TestCase
       tmp_file.close
       result = copy_file_to_remote 'arch', tmp_file.path, 'foo'
     
-      stdout, stderr, cmd = run_in_ssh_session_as 'mike', 'arch', 'cat foo'
+      stdout, stderr, cmd = run_in_ssh_session_on_host_as 'mike', 'arch', 'cat foo'
       assert_equal input_text, stdout, "remote file should contain input_text"
 
       assert result, "copy should return true"
     ensure
       tmp_file.unlink
-      run_in_ssh_session_as 'mike', 'arch', 'rm -f foo'
+      run_in_ssh_session_on_host_as 'mike', 'arch', 'rm -f foo'
     end
   end
 end

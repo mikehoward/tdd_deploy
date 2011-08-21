@@ -13,22 +13,28 @@ module TddDeploy
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
     # Hash keys are host names as strings.
     def run_on_all_hosts_as(userid, cmd = nil, &block)
-      results = {}
-      self.hosts.each do |host|
-        results[host] = run_in_ssh_session_as(userid, host, cmd, &block)
+      run_on_hosts_as userid, self.hosts, cmd, &block
+    end
+    
+    # runs supplied command on list of hosts as specified user
+    def run_on_hosts_as userid, host_list, cmd = nil, &block
+      host_list = [host_list] if host_list.is_a? String
+      result = {}
+      host_list.uniq.each do |host|
+        result[host] = run_in_ssh_session_on_host_as userid, host, cmd, &block
       end
-      results
+      result
     end
 
     # Runs the command secified in &block on 'host' as user 'self.host_admin'.
     # Returns an array [stdout, stderr] returned from the command.
     def run_in_ssh_session(host, cmd = nil, &block)
-      run_in_ssh_session_as(self.host_admin, host, cmd, &block)
+      run_in_ssh_session_on_host_as(self.host_admin, host, cmd, &block)
     end
 
     # Runs the command secified in &block on 'host' as user 'userid'.
     # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session_as(userid, host, cmd = nil, &block)
+    def run_in_ssh_session_on_host_as(userid, host, cmd = nil, &block)
       login = "#{userid}@#{host}"
       match = Regexp.new(match) if match.is_a? String
       raise ArgumentError.new('match expression cannot be empty') if match =~ ''

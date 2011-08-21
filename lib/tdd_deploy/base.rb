@@ -25,7 +25,7 @@ require 'tdd_deploy/deploy_test_methods'
 #
 #  class HostFacilityTest < TddDeploy::Base
 #     def test_for_file
-#       deploy_test_on_all_hosts_as user_id, match_string_or_regx, err_msg { command }
+#       deploy_test_on_hosts_as user_id, match_string_or_regx, err_msg { command }
 #     end
 #     etc
 #   end
