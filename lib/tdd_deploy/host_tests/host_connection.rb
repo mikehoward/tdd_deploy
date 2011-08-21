@@ -4,10 +4,9 @@ module TddDeploy
   class HostConnection < TddDeploy::Base
     # ping - pings all hosts
     def ping
-      require 'net/ping'
       result = true
       self.hosts.each do |host|
-        result &= assert host, Net::Ping::External.new(host).ping?, "Host #{host} should respond to ping"
+        result &= assert host, ping_host(host), "Host #{host} should respond to ping"
        end
        result
     end

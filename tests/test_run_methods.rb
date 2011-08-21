@@ -12,6 +12,13 @@ class RunMethodsTestCase < Test::Unit::TestCase
     self.set_env :hosts => 'arch,ubuntu', :host_admin => 'mike', :ssh_timeout => 2
   end
 
+  def test_ping_host
+    assert ping_host('localhost'), 'can ping local host'
+    assert ping_host('arch'), 'can ping arch'
+    refute ping_host('ubuntu'), 'cannot ping non-running host'
+    refute ping_host('non-existent-host'), 'cannot ping non-existent-host'
+  end
+
   def test_run_in_ssh_session_on_host_as
     stdout, stderr, cmd = run_in_ssh_session_on_host_as 'mike', 'arch', 'pwd'
     assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"

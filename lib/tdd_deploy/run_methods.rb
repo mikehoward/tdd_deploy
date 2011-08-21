@@ -1,6 +1,7 @@
 module TddDeploy
   module RunMethods
     require 'net/ssh'
+    require 'net/ping'
     
     # runs the output of the block on all hosts defined in self.hosts as user self.host_admin.
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
@@ -125,5 +126,8 @@ module TddDeploy
       [stdout, stderr, cmd]
     end
 
+    def ping_host host
+      Net::Ping::External.new(host).ping?
+    end
   end
 end

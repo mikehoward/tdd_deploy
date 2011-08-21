@@ -18,6 +18,16 @@ class  RemoteIptablesTestCase < Test::Unit::TestCase
   end
 
   def test_tcp_some_blocked_ports
-    assert @tester.tcp_some_blocked_ports
+    @tester.tcp_some_blocked_ports
+    @tester.hosts.each do |host|
+      assert_equal 0, @tester.failure_count(host), "all tested ports blocked for host #{host}"
+    end
+  end
+  
+  def test_tcp_some_blocked_ports_non_responsive_host
+    host = 'no-host'
+    @tester.set_env :hosts => host
+    @tester.tcp_some_blocked_ports
+    assert_equal 1, @tester.failure_count(host), "cannot test iptables on non-responding host"
   end
 end
