@@ -26,12 +26,6 @@ module TddDeploy
       result
     end
 
-    # Runs the command secified in &block on 'host' as user 'self.host_admin'.
-    # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session(host, cmd = nil, &block)
-      run_in_ssh_session_on_host_as(self.host_admin, host, cmd, &block)
-    end
-
     # Runs the command secified in &block on 'host' as user 'userid'.
     # Returns an array [stdout, stderr] returned from the command.
     def run_in_ssh_session_on_host_as(userid, host, cmd = nil, &block)

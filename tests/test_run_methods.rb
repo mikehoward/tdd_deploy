@@ -36,14 +36,7 @@ class RunMethodsTestCase < Test::Unit::TestCase
     assert_nil stderr, "should not return error if can connect to host"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
   end
-  
-  def test_run_in_ssh_session
-    stdout, stderr, cmd = run_in_ssh_session('arch') { 'pwd' }
-    assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"
-    assert_nil stderr, "should not return error if can connect to host"
-    assert_equal 'pwd', cmd, 'cmd should be pwd'
-  end
-  
+    
   def test_run_on_hosts_as
     result = run_on_hosts_as 'mike', ['arch', 'arch'], 'pwd'
     assert_not_nil result, "run_on_hosts_as should not return nil"
