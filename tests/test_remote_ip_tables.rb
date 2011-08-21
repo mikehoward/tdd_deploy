@@ -11,6 +11,7 @@ class  RemoteIptablesTestCase < Test::Unit::TestCase
     @tester = TddDeploy::RemoteIpTables.new
     @tester.reset_env
     @tester.set_env :hosts => 'arch', :host_admin => 'mike', :local_admin => 'mike'
+    @tester.reset_tests
   end
 
   def teardown

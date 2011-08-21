@@ -12,6 +12,15 @@
 	  }
 	  h1 { font-size: 1.4em;}
 	  h2 { font-size: 1.2em;}
+	  
+    #test-summary {
+      padding 10px;
+      border: 3px solid black;
+      margin: 1em;
+    }
+	  #test-summary-passed { color:#080; }
+	  #test-summary-failed { color: #800;}
+	  
 	  .env-summary {
 	    padding: 10px;
 	    border: 3px solid black;
@@ -50,7 +59,18 @@
 	<!-- Date: 2011-08-20 -->
 </head>
 <body>
-  <h1>TddDeloy Test Results:</h1>
+  <div id="test-summary">
+    <h1>TddDeloy Test Results:</h1>
+  
+    <% if (failures = total_failures) == 0 %>
+    <p id="test-summary-passed">All Tests Passed</p>
+    <% else %>
+    <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
+    <% end %>
+    <p><a href="/">Re-Run All Tests</a></p>
+    <p><a href="/?failed-tests=<%= failed_tests.join(',') %>">Re-Run Failed Tests</a></p>
+  </div>  <!-- test summary -->
+
   
   <div class="env-summary">
     <h2>Host / Site environment</h2>
@@ -63,6 +83,41 @@
     </table>
   </div>
   
+  <div class="configurator">
+    <h2>Configurator Directory</h2>
+    <p><a href="/?run_configurator">Run configurator</a></p>
+    <% tdd_deploy_configs = 'tdd_deploy_configs' %>
+    <% if File.exists? tdd_deploy_configs %>
+    <table>
+      <tr><td><%= tdd_deploy_configs %></td></tr>
+      <% ['balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir| %>
+      <% host_path = File.join(tdd_deploy_configs, host_dir) %>
+      <% unless File.exists? host_path %>
+      <tr><td></td><td><%= host_dir %> does not exist</td></tr>
+        <% next %>
+      <% end %>
+      <tr><td></td><td><%= host_dir %>/</td></tr>
+
+      <% ['config', 'site'].each do |subdir| %>
+        <% subdir_path = File.join(host_path, subdir) %>
+        <% unless File.exists? subdir_path %>
+        <tr><td></td><td></td><td><%= subdir %> does not exist</td></tr>
+          <% next %>
+        <% end %>
+        <tr><td></td><td></td><td><%= subdir %>/</td></tr>
+      
+          <% Dir.new(subdir_path).each do |fname| %>
+          <% next if fname[0] == '.' %>
+        <tr><td></td><td></td><td></td><td><%= fname %></td></tr>
+          <% end %>
+        <% end %>
+      <% end %>
+    </table>
+    <% else %>
+    <p>No Site Configuration files exist</p>
+    <% end %>
+  </div> <!-- configurator -->
+
   <% test_result_index = 0 %>
   <% test_results.each do |key, messages| %>
     <% if failure_count(key) == 0 %>

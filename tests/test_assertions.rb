@@ -91,4 +91,17 @@ class TestTddDeployAssertionsTestCase < Test::Unit::TestCase
   def test_refute_equal
     assert @assertion_helper.refute_equal('key', false, true, "false is not true"), "false is not true"
   end
+  
+  def test_total_failures
+    assert_equal 0, @assertion_helper.total_failures, "no tests results in 0 total failures"
+    @assertion_helper.fail 'key', 'forcing a failure'
+    assert_equal 1, @assertion_helper.total_failures, "failing creates a failure"
+    assert_equal @assertion_helper.total_failures, @assertion_helper.total_tests, "failures == tests"
+    @assertion_helper.fail 'key', 'forcing a failure'
+    assert_equal 2, @assertion_helper.total_failures, "failing creates a failure"
+    
+    @assertion_helper.pass 'key', 'forcing a pass'
+    assert_equal 2, @assertion_helper.total_failures, "failing creates a failure"
+    assert_equal 3, @assertion_helper.total_tests, "passing creates another test"
+  end
 end

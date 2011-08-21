@@ -12,10 +12,11 @@ module TddDeploy
     LOCAL_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'local_tests')
     TEMPLATE_PATH = File.join(LIB_DIR, 'tdd_deploy', 'server-templates', 'test_results.html.erb')
 
-    attr_accessor :test_classes
+    attr_accessor :test_classes, :query_hash, :failed_tests
   
     def initialize *args
       @already_defined = TddDeploy.constants
+      load_all_tests
       super
     end
 
@@ -36,15 +37,16 @@ module TddDeploy
 
       self.test_classes = TddDeploy::Base.children - [self.class]
 
-      @test_classes_hash = {}
+      @test_to_class_map = {}
       self.test_classes.each do |klass|
-        @test_classes_hash[klass.to_s] = klass
+        klass.instance_methods(false).each do |func|
+          @test_to_class_map[func.to_s] = klass
+        end
       end
     end
     
     def run_all_tests(test_group = nil)
-      load_all_tests
-      
+      read_env
       reset_tests
 
       test_classes = if test_group && defined?(@test_classes_hash)
@@ -57,20 +59,45 @@ module TddDeploy
       ret = true
       @failed_tests = []
       test_classes.each do |klass|
-        obj = klass.new
-        # puts "#{klass}.instance_methods: #{klass.instance_methods(false)}"
-        klass.instance_methods(false).each do |func|
-          test_result = obj.send func.to_sym
-          @failed_tests.push(func) unless test_result
-          ret &= test_result
-        end
+        ret &= run_all_tests_in_class(klass)
       end
       ret
     end
     
+    def run_selected_tests(test_list)
+      read_env
+      ret = true
+      test_list = test_list.split(/[\s,]+/) if test_list.is_a? String
+      test_list.each do |test|
+        ret &= run_a_test test
+      end
+      ret
+    end
+
+    def run_all_tests_in_class klass
+      read_env
+      obj = klass.new
+      ret = true
+      # puts "#{klass}.instance_methods: #{klass.instance_methods(false)}"
+      klass.instance_methods(false).each do |func|
+        test_result = obj.send func.to_sym
+        @failed_tests.push(func) unless test_result
+        ret &= test_result
+      end
+      ret
+    end
+    
+    def run_a_test test
+      read_env
+      obj = @test_to_class_map[test].new
+      test_result = obj.send test.to_sym
+      @failed_tests.push(test) unless test_result
+      test_result
+    end
+    
     def parse_query_string(query_string)
       return '' unless query_string.is_a? String
-      Hash[query_string.split('&').map { |tmp| key,value = tmp.split('='); [key, URI.decode(value)] }]
+      Hash[query_string.split('&').map { |tmp| key,value = tmp.split('='); value ? [key, URI.decode(value)] : [key, 'true']}]
     end
     
     def render_results
@@ -86,11 +113,23 @@ module TddDeploy
     end
 
     def call(env)
-      query_hash = parse_query_string(env['QUERY_STRING'])
-      run_all_tests query_hash['failed-tests']
+      self.query_hash = parse_query_string(env['QUERY_STRING'])
+
+      if query_hash['run_configurator']
+        require 'tdd_deploy/configurator'
+        configurator = TddDeploy::Configurator.new
+        configurator.make_configuration_files
+      end
+      
+      if query_hash['failed-tests']
+        remove_failed_tests
+        run_selected_tests(query_hash['failed-tests'])
+      else
+        run_all_tests
+      end
+      
       query_string = new_query_string
-      body = ["<h1>TDD Test Results:</h1>",
-        "<p><a href=/>Re-Run All Tests</a> <a href=/?#{query_string}>Re-Run Failed Tests</a></p>",
+      body = [
         render_results,
         "#{env.inspect}"
         ]

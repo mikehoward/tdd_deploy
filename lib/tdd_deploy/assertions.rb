@@ -114,6 +114,27 @@ module TddDeploy
     def reset_tests
       Stats.test_results = {}
     end
+    
+    # removes all failed test results
+    def remove_failed_tests
+      tmp = {}
+      Stats.test_results.each do |host, results|
+        tmp[host] = results.select { |tmp| tmp[0] }
+      end
+      Stats.test_results = tmp
+    end
+
+    def total_failures
+      count = 0
+      Stats.test_results.values.each do |messages|
+        count += messages.select { |msg| !msg[0] }.length
+      end
+      count
+    end
+
+    def total_tests
+      Stats.test_results.values.reduce(0) { |memo, obj| memo += obj.length }
+    end
 
     def failure_count(key)
       return nil unless Stats.test_results[key]
