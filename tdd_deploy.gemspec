@@ -10,7 +10,8 @@ Gem::Specification.new do |s|
   s.description = s.summary
   s.email = %q{ mike@clove.com }
   s.files = %w{ Capfile Gemfile config.ru } + Dir['bin/*'] +
-      Dir['lib/**/*.rb'] + Dir['tests/test*.rb'] + Dir['lib/tasks/*.rake']
+      Dir['lib/**/*.rb'] + Dir['tests/test*.rb'] + Dir['lib/tasks/*.rake'] +
+      Dir['lib/**/*.erb']
 
   s.homepage = 'https://github.com/mikehoward/tdd_deploy'
   s.licenses = ["GPL3"]

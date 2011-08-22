@@ -107,7 +107,7 @@ module TddDeploy
       
       template.result(binding)
     end
-    
+        
     def new_query_string
       str = "failed-tests=" + URI.escape(@failed_tests.join(',')) unless @failed_tests.nil? || @failed_tests.empty?
     end
@@ -131,7 +131,7 @@ module TddDeploy
       query_string = new_query_string
       body = [
         render_results,
-        "#{env.inspect}"
+        # "#{env.inspect}"
         ]
       return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]
     end

@@ -61,7 +61,7 @@ module TddDeploy
             
             out_fname = File.basename(fname, '.erb')
 
-            Dir.mkdir(subdir_path) unless File.exists? subdir
+            Dir.mkdir(subdir_path) unless File.exists? subdir_path
             out_path = File.join(tdd_deploy_configs, host_dir_fname, subdir, out_fname)
 
             f = File.new(out_path, "w")
