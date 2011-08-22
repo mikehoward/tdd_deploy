@@ -183,6 +183,10 @@ module TddDeploy
             ensure
               f.close
             end
+            # add any missing env keys
+            (self.env_types.keys - self.env_hash.keys).each do |key|
+              self.env_hash[key] = self.env_defaults[key]
+            end
             return self.env_hash
           else
             raise RuntimeError.new("Unable to open #{path} for reading")

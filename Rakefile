@@ -21,3 +21,12 @@ desc "Push Gem to rubygems"
 task :push do
   system "gem push tdd_deploy-#{tdd_deploy_version}.gem"
 end
+
+desc "Create html from .md files"
+task :html do
+  Dir.new('.').each do |fname|
+    next unless fname =~ /.md$/
+    fname_html = File.basename(fname, '.md') + '.html'
+    system "redcarpet #{fname} > #{fname_html}"
+  end
+end

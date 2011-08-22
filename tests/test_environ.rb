@@ -29,11 +29,20 @@ class TestEnvironTestCase < Test::Unit::TestCase
     @foo.save_env
   end
   
-  def test_exsistence_of_public_methods
+  def test_existence_of_public_methods
     [:reset_env, :read_env, :reset_env].each do |meth|
       assert @foo.respond_to?(meth), "@foo should respond to #{meth}"
     end
   end
+  
+  def test_auto_complete_of_missing_keys
+    @foo.save_env
+    @foo.clear_env
+    system('TMP=/tmp/t-$$; trap "rm $TMP; exit" 0 1 2 3 15 ;cp site_host_setup.env $TMP ; sed -e 1d $TMP >site_host_setup.env')
+    @foo.read_env
+    assert_equal @foo.env_types.keys.sort, @foo.env_hash.keys.sort, "read_env should set all keys"
+  end
+  
   def test_response_to_accessors
     [:env_hash].each do |meth|
       assert @foo.respond_to?("#{meth}".to_sym), "@foo should respond to #{meth}"

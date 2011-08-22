@@ -17,21 +17,25 @@ module TddDeploy
     def initialize *args
       @already_defined = TddDeploy.constants
       load_all_tests
+      if args.last.is_a? Hash
+        self.set_env args.last
+        self.save_env
+      end
       super
     end
 
     def load_all_tests
-      if TddDeploy::Base.children == [self.class]
-        [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
-            TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
-          if File.exists?(dir)
-            puts "gathering tests from #{dir}"
-            Dir.new(dir).each do |fname|
-              require File.join(dir, fname) unless fname[0] == '.'
-            end
-          else
-            puts "skipping #{dir} - no such directory"
+      [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
+          TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
+        if File.exists?(dir)
+          puts "gathering tests from #{dir}"
+          Dir.new(dir).each do |fname|
+            next if fname[0] == '.'
+
+            load File.join(dir, fname)
           end
+        else
+          puts "skipping #{dir} - no such directory"
         end
       end
 

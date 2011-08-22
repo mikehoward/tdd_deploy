@@ -11,13 +11,16 @@ class TestServerTestCase < Test::Unit::TestCase
   
   def setup
     require 'tdd_deploy/server'
-    @tester = TddDeploy::Server.new(:web_hosts => 'arch', :db_hosts => 'arch', 
+    @tester = TddDeploy::Server.new
+    @tester.set_env(:web_hosts => 'arch', :db_hosts => 'arch', 
       :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2,
       :site => 'site', :site_user => 'site_user')
+    @tester.save_env
   end
   
   def teardown
     @tester = nil
+    system('rm site_host_setup.env')
   end
   
   def test_classes_array
