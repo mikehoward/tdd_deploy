@@ -35,7 +35,8 @@ module TddDeploy
       end
 
       # instantiate all templates and write output to tdd_deploy_configs
-      erb_dir = File.expand_path('../site-erb', __FILE__)
+      erb_dir = File.join('lib', 'tdd_deploy', 'site-erb')
+      # erb_dir = File.expand_path('../site-erb', __FILE__)
       Dir.new(erb_dir).each do |host_dir_fname|
         next if host_dir_fname[0] == '.'
         

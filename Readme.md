@@ -33,6 +33,25 @@ configuration of both the deployment host(s) and a Rails application.
 * [Tests](#tests)
 * [Command Line Utilities](#utilities)
 
+## How to Use
+
+* go to the root of you Rails App
+* Install the gem
+* run the install rake task
+* at a terminal, run 'tdd\_deploy\_context'. It's ugly, but works. The variables you need
+to set are described in [Data](#data_managed)
+* look over the tests in '/lib/tdd\_deploy'. They should be pretty self explanatory.
+To change them, move to /lib/tdd\_deploy/local\_tests and hack away. Copy and hack to
+add more tests. [hint: if you do this, you should copy or move everything .../local\_tests (and
+maybe run rake tdd\_deploy:flush\_gem\_tests)]
+* open a terminal and start the server.
+* open a browser window and visit 'localhost:9292'.
+
+NOTES:
+
+* The server reloads the configuration when you change it
+* The server does NOT pick up new or modified tests, so you have to restart it.
+
 ## Installation
 
     gem install tdd_deploy
@@ -41,7 +60,7 @@ configuration of both the deployment host(s) and a Rails application.
     
     bundle
     
-    rake tdd_deploy:install # which copies the existing tests to *lib/tdd_deploy*
+    rake tdd_deploy:install_gem_tests # which copies the existing tests to 'lib/tdd_deploy'
 
     tdd_deploy_context # fill in your data
     
@@ -53,7 +72,11 @@ and *lib/tdd\_deploy/site\_tests*.
 
 ## Uninstall
 
-    rake tdd_deploy:uninstall # removes all tests from *lib/tdd_deploy/hosts_tests* & *lib/tdd_deploy/site_tests*
+    # remove all tests from lib/tdd_deploy/hosts_tests & lib/tdd_deploy/site_tests
+    rake tdd_deploy:uninstall
+    
+    # optionally remove created config files
+    rm -rf 
     
     (remove from Gemfile)
     
@@ -118,15 +141,18 @@ So in this setup:
 ### Site Deployment Context Variables
 
 * site - string - name of the site. Should satisfy [a-z][a-z0-9_]+, but this isn't checked.
+Defaults to 'site'
+* site\_path - string - absolute path to DocumentRoot of site.  No default.
+* site\_url - string - URL of site [typically something like www.example.com].
+This string is not checked, but should be a single domain name.
+No default.
+* site\_aliases - string - as few or many aliases for the site\_url. No default
 * site\_user - string - name of user on all remote **web\_hosts** which host the app.
 We assume that this user will own all installations of the application on all the **web\_hosts**
 and will be the database user which owns and connects to the database on all the **db\_hosts**.
-
-**NOTE:** The following variables are tentative and will probably be dropped from TddDeploy. They actually
-belong in deployment and app provisioning (whatever that means) rather than testing.
-
+Defaults to 'site\_user'.
 * site\_base\_port - int - TddDeploy assumes that the Rails app will fronted by a reverse proxy
-- nginx or apache - and will run a small pack of *thin* or *mongrel* servers. The **site\_base\_port**
+\- nginx or apache - and will run a small pack of *thin* or *mongrel* servers. The **site\_base\_port**
 is the beginning of the block of ports used by the pack of servers.
 * site\_num\_servers - int - number of *thin* or *mongrel* (or whatever) servers which the app
 expects to have running.
@@ -147,6 +173,6 @@ The **uninstall** rake task does *not* remove tests from this directory.
 
 There are two utilities:
 
-* tdd_deploy_context - a command line utility for managing Host and Site context variables
-* tdd_deploy_server - a command line utility which starts up the test results server on localhost,
+* tdd\_deploy\_context - a command line utility for managing Host and Site context variables
+* tdd\_deploy\_server - a command line utility which starts up the test results server on localhost,
 port 9292.

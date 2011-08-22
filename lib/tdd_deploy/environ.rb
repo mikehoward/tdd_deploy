@@ -79,6 +79,7 @@ module TddDeploy
 
       'site' => :string,
       'site_url' => :string,
+      'site_aliases' => :string,
       'site_path' => :string,
       'site_user' => :string,
 
@@ -99,6 +100,7 @@ module TddDeploy
 
       'site' => "site",
       'site_url' => 'www.site.com',                    # don't include the scheme
+      'site_aliases' => '',
       'site_path' => '/home/site_user/site.d/current',   # default for Capistrano
       'site_user' => "site_user",
 
