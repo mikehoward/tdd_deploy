@@ -2,8 +2,7 @@ require 'net/ssh'
 require 'net/sftp'
 
 module TddDeploy
-  module RunMethods
-
+  module CopyMethods
     def copy_string_to_remote_file_on_hosts_as userid, host_list, str, dst
       result = true
       host_list = [host_list] if host_list.is_a? String

@@ -5,6 +5,10 @@ require 'uri'
 require 'tdd_deploy'
 
 module TddDeploy
+  # == TddDeploy::Server
+  #
+  # implements a simple 'rack' server. Methods are either used internally or called
+  # from the web page during page reloads.
   class Server < TddDeploy::Base
     LIB_DIR = File.expand_path('../..', __FILE__)
     HOST_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'host_tests')
@@ -14,6 +18,8 @@ module TddDeploy
 
     attr_accessor :test_classes, :query_hash, :failed_tests
   
+    # accepts env_hash arguments. It's just as easy to instantiate and then change
+    # the variables using self.set_env
     def initialize *args
       @already_defined = TddDeploy.constants
       load_all_tests
@@ -24,6 +30,34 @@ module TddDeploy
       super
     end
 
+    # rack interface. takes an env Hash and returns [code, headers, body]
+    def call(env)
+      self.query_hash = parse_query_string(env['QUERY_STRING'])
+
+      if query_hash['run_configurator']
+        require 'tdd_deploy/configurator'
+        configurator = TddDeploy::Configurator.new
+        configurator.make_configuration_files
+      end
+      
+      if query_hash['failed-tests']
+        remove_failed_tests
+        run_selected_tests(query_hash['failed-tests'])
+      else
+        run_all_tests
+      end
+      
+      query_string = new_query_string
+      body = [
+        render_results,
+        # "#{env.inspect}"
+        ]
+      return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]
+    end
+
+    # loads all files in 'lib/tdd_deploy/host_tests | site_tests | local_tests.
+    # both host_tests and site_tests are clobbered by the rake install task.
+    # local_tests is safe.
     def load_all_tests
       [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
           TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
@@ -49,25 +83,20 @@ module TddDeploy
       end
     end
     
-    def run_all_tests(test_group = nil)
+    # Re-reads the environment and then runs all known tests.
+    def run_all_tests
       read_env
       reset_tests
 
-      test_classes = if test_group && defined?(@test_classes_hash)
-        failed_test_keys = test_group.split(',')
-        @test_classes_hash.select { |k, v| failed_test_keys.include? k }.values
-      else
-        self.test_classes
-      end
-
       ret = true
       @failed_tests = []
-      test_classes.each do |klass|
+      self.test_classes.each do |klass|
         ret &= run_all_tests_in_class(klass)
       end
       ret
     end
     
+    # Re-reads the environment and then runs tests from 'test_list'
     def run_selected_tests(test_list)
       read_env
       ret = true
@@ -78,6 +107,9 @@ module TddDeploy
       ret
     end
 
+    private
+
+    # not presently used
     def run_all_tests_in_class klass
       read_env
       obj = klass.new
@@ -116,29 +148,6 @@ module TddDeploy
       str = "failed-tests=" + URI.escape(@failed_tests.join(',')) unless @failed_tests.nil? || @failed_tests.empty?
     end
 
-    def call(env)
-      self.query_hash = parse_query_string(env['QUERY_STRING'])
-
-      if query_hash['run_configurator']
-        require 'tdd_deploy/configurator'
-        configurator = TddDeploy::Configurator.new
-        configurator.make_configuration_files
-      end
-      
-      if query_hash['failed-tests']
-        remove_failed_tests
-        run_selected_tests(query_hash['failed-tests'])
-      else
-        run_all_tests
-      end
-      
-      query_string = new_query_string
-      body = [
-        render_results,
-        # "#{env.inspect}"
-        ]
-      return [200, {'Content-Length' => body.join('').length.to_s, 'Content-Type' => 'text/html'}, body]
-    end
   end
 end
 

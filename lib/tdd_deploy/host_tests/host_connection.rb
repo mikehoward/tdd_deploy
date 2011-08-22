@@ -1,6 +1,9 @@
 require 'tdd_deploy/base'
 
 module TddDeploy
+  # == TddDeploy::HostConnection
+  #
+  # tests that hosts are pingable and that the current user can log in as both 'host_admin' and 'root'
   class HostConnection < TddDeploy::Base
     # ping - pings all hosts
     def ping

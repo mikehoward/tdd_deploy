@@ -194,3 +194,8 @@ There are two utilities:
 * tdd\_deploy\_context - a command line utility for managing Host and Site context variables
 * tdd\_deploy\_server - a command line utility which starts up the test results server on localhost,
 port 9292.
+
+<h2>Code Tests</h2>
+
+The code is tested against an Arch linux server running as a virtual host on my machine with
+my setup. YMMV.

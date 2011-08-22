@@ -2,6 +2,19 @@ require 'tdd_deploy/assertions'
 require 'tdd_deploy/run_methods'
 
 module TddDeploy
+  # == TddDeploy::DeployTestMethods
+  #
+  # this module supplies the basic methods used to validate host installation structure.
+  #
+  # all methods expect the first two arguments to be 'userid' and 'host' or 'host-list'.
+  # the 'userid' is a userid which exists on the specified host.
+  # 'host' is a single host
+  # 'host-list' can be a single host (as a string) or an array of host names
+  # 'success_message' is what you will see in the report. I like positive messages, hence the name
+  #
+  # the most frequently used are 'deploy_test_process_running_on_hosts_as' and 'deploy_test_file_exists_on_hosts_as'.
+  #
+  # 'deploy_test_on_hosts_as' and 'deploy_test_in_ssh_session_as' are more primative and flexible.
   module DeployTestMethods
     include TddDeploy::Assertions
     include TddDeploy::RunMethods

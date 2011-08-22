@@ -7,14 +7,29 @@ require 'tdd_deploy/base'
 module TddDeploy
   # == TddDeployConfigurator
   #
-  # TddDeployConfigurator is used to create site/host specific configuration files for
-  # sites. The files are defined by templates in subdirectories of the 'site-erb' directory.
-  # At present there are templates in 'site-erb/config' and 'site-erb/site'. Rendered files
-  # are written to corresponding subdirectories of the app. For example, 'site-erb/config/foo.erb'
-  # will produce the file 'app/config/foo'
+  # NOTE: you generally do NOT use the TddDeploy::Configurator class directly. You will
+  # seed your configuration files using the supplied 'rake' task; edit, modify, delete,
+  # spindle, fold and mutilate as you please; and then, click the 'Run configurator'
+  # link in the server page.
   #
-  # files dropped into 'app/site/' are assumed to be executable, so their permissions are
-  # set to 0755
+  # TddDeploy::Configurator is used to create site/host specific configuration files for
+  # sites. The files are defined by templates in subdirectories of the 'site-erb' directory.
+  #
+  # templates are installed in your app's 'lib/tdd_deploy/site-erb' directory. There are
+  # three subdirectories - one for each server class: balance_hosts, db_hosts, and web_hosts.
+  #
+  # Templates actually reside in subdirectories which correspond to installation directories
+  # on the deployment hosts. Thus, templates for the 'config' directory for the 'balance_hosts'
+  # are in 'lib/tdd_deploy/site-erb/balance_hosts/config'
+  #
+  # I put other config files and executables in the directory 'site'. At present these are
+  # include files for 'nginx' and 'monit'.
+  #
+  # At present there are templates in 'site-erb/config' and 'site-erb/site'. Rendered files
+  # are written to corresponding subdirectories of 'tdd_deploy_configs'
+  # in your application.
+  #
+  # It's your problem to deal with file permission issues.
   class Configurator < TddDeploy::Base
     # install - reads all the templates in gem-home/site-erb, renders them using the
     #  current environment context, and writes the renderings to the appropriate

@@ -1,4 +1,16 @@
 module TddDeploy
+  # == TddDeploy::RunMethods
+  #
+  # supplies methods for running local and remote processes.
+  #
+  # remotely run processes require a userid and either a host or host-list.
+  # * 'userid' - is a remote userid which the local user can ssh into using public key
+  # * 'host' - a single host name
+  # * 'host_list' - single host name as string or Array of host names
+  # * 'cmd' - command as a string
+  # * 'block' - command as the result of a block. Use one or the other, but not both
+  #
+  # run_locally and ping_host are both run locally and don't need userid or host
   module RunMethods
     require 'net/ssh'
     require 'net/ping'

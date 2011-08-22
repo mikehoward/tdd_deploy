@@ -7,6 +7,7 @@ require 'tdd_deploy/copy_methods'
 class RunMethodsTestCase < Test::Unit::TestCase
   include TddDeploy::Environ
   include TddDeploy::RunMethods
+  include TddDeploy::CopyMethods
 
   def setup
     self.reset_env

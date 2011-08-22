@@ -3,17 +3,18 @@ require 'tdd_deploy/base'
 module TddDeploy
   # == TddDeploy::SiteLayout
   #
-  #  tests for the existence of several directories on all hosts as *site_user* in
-  #  the *site_user* home directory.
+  # tests for the existence of several directories on all hosts as *site_user* in
+  # the *site_user* home directory.
   #
-  #  The sub directories tested for are:
+  # The sub directories tested for are:
   #
-  #     *site*.d - a directory named for the name of the site.
-  #     *site*.d/releases - a standard directory used by Capistrano
-  #     site/nginx.conf - an nginx configuratino fragment which tells nginx to
-  #      proxy the site's *thin* servers
-  #     site/monitrc - a monit configuration fragment which tells monit how to monitor
-  #      the site's *thin* servers.
+  # * 'site_path' - DocumentRoot
+  # * 'site_path'/../releases - a standard directory used by Capistrano
+  # * 'site_path'/site/nginx.conf - an nginx configuratino fragment which tells nginx to proxy the site's *thin* servers
+  # * 'site_path'/site/monitrc - a monit configuration fragment which tells monit how to monitor the site's *thin* servers.
+  # * 'site_path'/config/thin.conf - config file for 'thin' server
+  # * 'site_path'/config/one_thin_server.conf - config file for monit to use to restart a single server instance
+  # * 'site_path'/site/one_thin_server - shell script to start a single server instance
   class SiteLayout < TddDeploy::Base
     def test_site_subdir
       deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_path}"
