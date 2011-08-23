@@ -1,3 +1,6 @@
+cfg-out/
+config/
+site/
 *~
 doc/
 garbage
