@@ -22,6 +22,7 @@ module TddDeploy
       raise RuntimeError.new("No Environment File") unless File.exists? TddDeploy::Environ::ENV_FNAME
       super
       load_all_tests
+      @request_count = 0
     end
     
     # failed_tests returns a unique, sorted list of strings. It just seemed easier to
@@ -59,12 +60,13 @@ module TddDeploy
 
       load_all_tests
       
-      if query_hash['failed-tests']
+      if query_hash['failed-tests'] && @request_count > 0
         remove_failed_tests
         run_selected_tests(query_hash['failed-tests'])
       else
         run_all_tests
       end
+      @request_count += 1
       
       query_string = new_query_string
       body = [
