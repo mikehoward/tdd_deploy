@@ -1,4 +1,7 @@
 module TddDeploy
+  # == TddDeploy::Engine
+  #
+  # brings in the rake tasks. Ignore it
   class Engine < Rails::Engine
     # engine_name "tdd_deploy"
     rake_tasks do

@@ -9,3 +9,4 @@ site_host_setup.env
 *.gem
 .yardoc/
 .rvmrc
+tdd_deploy_configs/

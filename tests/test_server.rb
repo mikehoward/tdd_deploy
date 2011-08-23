@@ -1,27 +1,38 @@
 $:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'test/unit'
-require 'tdd_deploy/run_methods'
+require 'tdd_deploy/environ'
+require 'tdd_deploy/server'
 
 class TestServerTestCase < Test::Unit::TestCase
   GEM_ROOT = File.expand_path('../..', __FILE__)
   BIN_DIR = File.join(GEM_ROOT, 'bin')
-  PORT = 8809
 
-  include TddDeploy::RunMethods
+  include TddDeploy::Environ
   
   def setup
-    require 'tdd_deploy/server'
-    @tester = TddDeploy::Server.new(PORT, :web_hosts => 'arch', :db_hosts => 'arch', 
-      :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2)
+    # we can't create a server w/o an environment, but we flush it between tests.
+    # so we have to create the enviornment file here
+    self.reset_env
+    self.save_env
+
+    @tester = TddDeploy::Server.new
+    @tester.set_env(:web_hosts => 'arch', :db_hosts => 'arch', 
+      :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2,
+      :site => 'site', :site_user => 'site_user')
+    @tester.save_env
   end
   
   def teardown
     @tester = nil
+    system('rm -f site_host_setup.env')
   end
   
-  def test_tester_accessors
-    assert_equal PORT, @tester.port, "@tester.port should be #{PORT}"
+  def test_env_file_detection
+    File.unlink TddDeploy::Environ::ENV_FNAME
+    assert_raises RuntimeError do
+      TddDeploy::Server.new
+    end
   end
   
   def test_classes_array
@@ -32,10 +43,54 @@ class TestServerTestCase < Test::Unit::TestCase
   
   def test_run_all_tests
     ret = @tester.run_all_tests
-    assert ret, "@tester should run all tests and return true: #{@tester.test_failures}"
-    # puts @tester.test_results
+    failures = "\n" + (@tester.failure_messages('arch') || []).join("\n") + "\n"
+    assert ret, "@tester should run all tests and return true: returned: #{ret.inspect}: #{failures}"
+    # puts @tester.formatted_test_results
+  end
+
+  def test_run_a_test
+    assert @tester.send(:run_a_test, 'return_true'), "return_true should pass"
   end
   
+  def test_run_some_tests
+    assert @tester.send(:run_selected_tests, 'return_true,smoke'), 'run_selected_tests should work with a string'
+    assert @tester.send(:run_selected_tests, ['return_true', 'smoke']), 'run_selected_tests can run two tests'
+  end
+  
+  def test_parse_query_string
+    qs = @tester.send :parse_query_string, "foo=bar&bar=some%20stuff"
+    assert_equal 2, qs.length, "query string should have to entries"
+    assert_equal 'bar', qs['foo'], "qs['foo'] should be 'bar'"
+    assert_equal 'some stuff', qs['bar'], "qs['bar'] should be 'some stuff'"
+  end
+  
+  def test_failed_tests
+    assert @tester.failed_tests.is_a?(Array), "failed_tests is an Array"
+    @tester.failed_tests = :foo
+    assert_equal ['foo'], @tester.failed_tests, "can assign symbol to failed_tests"
+    @tester.failed_tests = 'foo'
+    assert_equal ['foo'], @tester.failed_tests, "can assign String to failed_tests"
+    @tester.failed_tests = ['foo', 'bar']
+    assert_equal ['bar','foo'], @tester.failed_tests, "can assign Array of Strings to failed_tests"
+    @tester.failed_tests = ['foo', :bar]
+    assert_equal ['bar', 'foo'], @tester.failed_tests, "can assign Array of Strings and symbols to failed_tests"
+    @tester.failed_tests.push('baz')
+    assert_equal ['bar', 'baz', 'foo'], @tester.failed_tests, "pushing string should work"
+    @tester.failed_tests.push(:snort)
+    assert_equal ['bar', 'baz', 'foo', 'snort'], @tester.failed_tests, "pushing symbol should work"
+    @tester.failed_tests.push('foo')
+    assert_equal ['bar', 'baz', 'foo', 'snort'], @tester.failed_tests, "pushing duplicate should not add entry"
+  end
+
+  def test_new_query_string
+    @tester.failed_tests = [:foo, :bar, :baz]
+    assert_equal 'failed-tests=bar,baz,foo', @tester.send(:new_query_string), "new query string should be correct"
+  end
+  
+  def test_render_results
+    assert_match /Test Results/, @tester.send(:render_results), "render results should return a page"
+  end
+
   def test_rack_interface
     code, headers, body = @tester.call({})
     assert_equal 200, code, "@tester always responds with 200"

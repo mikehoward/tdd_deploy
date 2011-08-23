@@ -1,44 +1,58 @@
 module TddDeploy
+  # == TddDeploy::RunMethods
+  #
+  # supplies methods for running local and remote processes.
+  #
+  # remotely run processes require a userid and either a host or host-list.
+  # * 'userid' - is a remote userid which the local user can ssh into using public key
+  # * 'host' - a single host name
+  # * 'host_list' - single host name as string or Array of host names
+  # * 'cmd' - command as a string
+  # * 'block' - command as the result of a block. Use one or the other, but not both
+  #
+  # run_locally and ping_host are both run locally and don't need userid or host
   module RunMethods
     require 'net/ssh'
+    require 'net/ping'
     
     # runs the output of the block on all hosts defined in self.hosts as user self.host_admin.
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
     # Hash keys are host names as strings.
-    def run_on_all_hosts(&block)
-      run_on_all_hosts_as self.host_admin, &block
+    def run_on_all_hosts(cmd = nil, &block)
+      run_on_all_hosts_as self.host_admin, cmd, &block
     end
 
     # Runs the output of the block on all hosts defined in self.hosts as user 'userid'.
     # Returns a hash of two element arrays containing output [stdout, stderr] returned from the command.
     # Hash keys are host names as strings.
-    def run_on_all_hosts_as(userid, &block)
-      results = {}
-      self.hosts.each do |host|
-        results[host] = run_in_ssh_session_as(userid, host, &block)
-      end
-      results
+    def run_on_all_hosts_as(userid, cmd = nil, &block)
+      run_on_hosts_as userid, self.hosts, cmd, &block
     end
-
-    # Runs the command secified in &block on 'host' as user 'self.host_admin'.
-    # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session(host, &block)
-      run_in_ssh_session_as(self.host_admin, host, &block)
+    
+    # runs supplied command on list of hosts as specified user
+    def run_on_hosts_as userid, host_list, cmd = nil, &block
+      host_list = [host_list] if host_list.is_a? String
+      result = {}
+      host_list.uniq.each do |host|
+        result[host] = run_in_ssh_session_on_host_as userid, host, cmd, &block
+      end
+      result
     end
 
     # Runs the command secified in &block on 'host' as user 'userid'.
     # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session_as(userid, host, &block)
+    def run_in_ssh_session_on_host_as(userid, host, cmd = nil, &block)
       login = "#{userid}@#{host}"
       match = Regexp.new(match) if match.is_a? String
-      raise ArgumentError, 'match expression cannot be empty' if match =~ ''
+      raise ArgumentError.new('match expression cannot be empty') if match =~ ''
 
       rsp = nil
       err_rsp = nil
-      cmd = block.call(host, login, userid)
+      cmd = block.call if block_given?
+      raise ArgumentError.new('cmd cannot be empty') if cmd.empty?
 
       begin
-        ssh_session = Net::SSH.start(host, userid, :timeout => self.ssh_timeout)
+        ssh_session = Net::SSH.start(host, userid, :timeout => self.ssh_timeout, :languages => 'en')
         raise "Unable to establish connecton to #{host} as #{userid}" if ssh_session.nil?
 
         ssh_session.open_channel do |channel|
@@ -52,8 +66,9 @@ module TddDeploy
               err_rsp ||= ''
               err_rsp += data.to_s
             end
-
           end
+          
+          channel.wait
         end
 
         # must do this or the channel only runs once
@@ -66,6 +81,7 @@ module TddDeploy
       end
       [rsp, err_rsp, cmd]
     end
+
   
     # run locally runs a comman locally and returns the output of stdout, stderr, and the command
     # run in a 3 element array
@@ -122,5 +138,8 @@ module TddDeploy
       [stdout, stderr, cmd]
     end
 
+    def ping_host host
+      Net::Ping::External.new(host).ping?
+    end
   end
 end

@@ -11,34 +11,51 @@ class RunMethodsTestCase < Test::Unit::TestCase
     self.reset_env
     self.set_env :hosts => 'arch,ubuntu', :host_admin => 'mike', :ssh_timeout => 2
   end
-  
-  def test_run_in_ssh_session_as
-    stdout, stderr, cmd = run_in_ssh_session_as 'mike', 'arch' do
-      'pwd'
-    end
+
+  def test_ping_host
+    assert ping_host('localhost'), 'can ping local host'
+    assert ping_host('arch'), 'can ping arch'
+    refute ping_host('ubuntu'), 'cannot ping non-running host'
+    refute ping_host('non-existent-host'), 'cannot ping non-existent-host'
+  end
+
+  def test_run_in_ssh_session_on_host_as
+    stdout, stderr, cmd = run_in_ssh_session_on_host_as 'mike', 'arch', 'pwd'
     assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"
     assert_nil stderr, "should not return error if can connect to host"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
-  
-    stdout, stderr = run_in_ssh_session_as 'mike', 'no-host' do
-      'pwd'
-    end
+      
+    stdout, stderr = run_in_ssh_session_on_host_as 'mike', 'no-host', 'pwd'
     refute_equal "/home/mike\n", stdout, "should not return home directory for bad host name"
     refute_nil stderr, "should return an error message for bad host name"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
-  
-    stdout, stderr = run_in_ssh_session_as 'no-user', 'arch' do
-      'pwd'
-    end
+      
+    stdout, stderr = run_in_ssh_session_on_host_as 'no-user', 'arch', 'pwd'
     refute_equal "/home/mike\n", stdout, "should not return home directory for bad user name"
     refute_nil stderr, "should return an error message for bad user name"
   end
   
-  def test_run_in_ssh_session
-    stdout, stderr, cmd = run_in_ssh_session('arch') { 'pwd' }
+  def test_run_in_ssh_session_on_host_as
+    stdout, stderr, cmd = run_in_ssh_session_on_host_as 'mike', 'arch' do
+      'pwd'
+    end
     assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"
     assert_nil stderr, "should not return error if can connect to host"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
+  end
+    
+  def test_run_on_hosts_as
+    result = run_on_hosts_as 'mike', ['arch', 'arch'], 'pwd'
+    assert_not_nil result, "run_on_hosts_as should not return nil"
+    assert result.is_a?(Hash), "run_on_hosts_as should return an Hash"
+    assert_equal ["/home/mike\n", nil, 'pwd'], result['arch'], "Result['arch'] should have command results"
+    assert_equal 1, result.length, "result length should be 1, not 2"
+  end
+
+  def test_run_on_hosts_as_with_string_for_hosts_list
+    result = run_on_hosts_as 'mike', 'arch', 'pwd'
+    assert_not_nil result, "result should work with a single string for a host list"
+    assert_equal ["/home/mike\n", nil, 'pwd'], result['arch'], "run_on_all_hosts_as should work with string for host list"
   end
   
   def test_run_on_all_hosts_as

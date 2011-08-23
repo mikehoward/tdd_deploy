@@ -1,4 +1,5 @@
 require 'rake'
+require 'fileutils'
 
 x = eval File.new('tdd_deploy.gemspec').read
 tdd_deploy_version = x.version.to_s
@@ -17,7 +18,22 @@ task :gem do
   system "(cd ~/Rails/GemCache ; gem generate_index -d . )"
 end
 
+desc "Create Yard Doc"
+task :doc do
+  FileUtils.rm_r 'doc' if File.exists? 'doc'
+  system 'yard'
+end
+
 desc "Push Gem to rubygems"
-task :push do
+task :push_gem do
   system "gem push tdd_deploy-#{tdd_deploy_version}.gem"
+end
+
+desc "Create html from .md files"
+task :html do
+  Dir.new('.').each do |fname|
+    next unless fname =~ /.md$/
+    fname_html = File.basename(fname, '.md') + '.html'
+    system "redcarpet #{fname} > #{fname_html}"
+  end
 end

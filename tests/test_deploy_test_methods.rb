@@ -36,7 +36,7 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
     assert_equal 'local_admin', @tester.local_admin, "local_admin should be 'local_admin'"
     assert_equal 'local_admin@bogus.tld', @tester.local_admin_email, "local_admin_email should be 'local_admin@bogus.tld'"
 #    assert_equal 'hosts', @tester.hosts, "hosts should be 'arch'"
-    assert_equal ['bar', 'foo'], @tester.hosts, "hosts should be 'bar,foo'"
+    assert_equal ['arch'], @tester.hosts, "hosts should be 'arch'"
   end
 
   def test_custom_env
@@ -65,33 +65,45 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
     tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, 'no-file-exists', 'generate an error' do
       'ls /usr/no-file-exists'
     end
-    # @tester.announce_test_results
+    # @tester.announce_formatted_test_results
     @tester.reset_tests
     refute tmp, "run as root should fail when accessing a non-existent file"
 
     tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, "/root", "should run as root on host #{@tester.hosts.first}" do
       'pwd'
     end
-    # @tester.announce_test_results
+    # @tester.announce_formatted_test_results
     @tester.reset_tests
     assert tmp, "should be able to run on #{@tester.hosts.first} as root"
   end
 
-  def test_deploy_test_in_ssh_session
-    @tester.deploy_test_in_ssh_session @tester.hosts.first, "/home/#{@tester.host_admin}", "can't run as #{@tester.host_admin} on host" do
+  def test_deploy_test_on_hosts_as
+    result = @tester.deploy_test_on_hosts_as 'root', @tester.hosts, '/root', "can't run as root on all hosts" do
       'pwd'
     end
+    assert result, "deploy_test_on_hosts_as works as root on all hosts"
   end
 
-  def test_deploy_test_on_all_hosts_as
-    @tester.deploy_test_on_all_hosts_as 'root', '/root', "can't run as root on all hosts" do
+  def test_deploy_test_on_hosts_as_with_string_for_host_list
+    result = @tester.deploy_test_on_hosts_as 'root', 'arch', '/root', "can't run as root on all hosts" do
       'pwd'
     end
+    assert result, "deploy_test_on_hosts_as works as root on with string for host_list"
   end
+  
+  def test_file_exists_on_hosts_as
+    result = @tester.deploy_test_file_exists_on_hosts_as "root", 'arch', '/no-such-file', "/no-such-file exists on all hosts"
+    refute result, "test_file_exists_on_hosts_as works on arch as root: #{@tester.formatted_test_results}"
 
-  def test_deploy_test_on_all_hosts
-    @tester.deploy_test_on_all_hosts "/home/#{@tester.host_admin}", 'can\'t run on some hosts' do
-      'pwd'
-    end
+    result = @tester.deploy_test_file_exists_on_hosts_as "root", 'arch', '/etc/passwd', "/etc/passwd exists on all hosts"
+    assert result, "test_file_exists_on_hosts_as works on arch as root: #{@tester.formatted_test_results}"
+  end
+  
+  def test_process_running_on_hosts_as
+    result = @tester.deploy_test_process_running_on_hosts_as 'root', 'arch', '/var/run/no-such-pid', "no-such-pid is not running"
+    refute result, "test_process_running_on_hosts works on arch as roots: #{@tester.formatted_test_results}"
+  
+    result = @tester.deploy_test_process_running_on_hosts_as 'root', 'arch','/var/run/crond.pid', "crond is running"
+    assert result, "test_process_running_on_hosts works on arch as root: #{@tester.formatted_test_results}"
   end
 end

@@ -29,11 +29,20 @@ class TestEnvironTestCase < Test::Unit::TestCase
     @foo.save_env
   end
   
-  def test_exsistence_of_public_methods
+  def test_existence_of_public_methods
     [:reset_env, :read_env, :reset_env].each do |meth|
       assert @foo.respond_to?(meth), "@foo should respond to #{meth}"
     end
   end
+  
+  def test_auto_complete_of_missing_keys
+    @foo.save_env
+    @foo.clear_env
+    system('TMP=/tmp/t-$$; trap "rm $TMP; exit" 0 1 2 3 15 ;cp site_host_setup.env $TMP ; sed -e 1d $TMP >site_host_setup.env')
+    @foo.read_env
+    assert_equal @foo.env_types.keys.sort, @foo.env_hash.keys.sort, "read_env should set all keys"
+  end
+  
   def test_response_to_accessors
     [:env_hash].each do |meth|
       assert @foo.respond_to?("#{meth}".to_sym), "@foo should respond to #{meth}"
@@ -50,7 +59,8 @@ class TestEnvironTestCase < Test::Unit::TestCase
   
   def test_resonse_to_instance_assessors
     [:env_hash, :ssh_timeout, :site_base_port, :site_num_servers,
-      :host_admin, :local_admin, :local_admin_email, :site, :site_user,
+      :host_admin, :local_admin, :local_admin_email,
+      :site, :site_user, :site_path, :site_url,
       :hosts, :balance_hosts, :db_hosts, :web_hosts].each do |meth|
       assert @foo.respond_to?(meth), "@foo should respond to #{meth}"
       assert @foo.respond_to?("#{meth}".to_sym), "@foo should respond to #{meth}="
@@ -59,13 +69,13 @@ class TestEnvironTestCase < Test::Unit::TestCase
   
   def test_env_type
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
-    "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |sym|
+    "site", "site_user", "site_path", "site_url", "balance_hosts", "db_hosts", "web_hosts"].each do |sym|
       assert @foo.env_types.keys.include?(sym.to_s), "@foo.env_types.keys includes #{sym}"
     end
     ["ssh_timeout", "site_base_port", "site_num_servers"].each do |key|
       assert_equal :int, @foo.env_types[key], "@foo.env_types[#{key}] should be :int"
     end
-    ["host_admin", "local_admin", "local_admin_email", "site", "site_user"].each do |key|
+    ["host_admin", "local_admin", "local_admin_email", "site", "site_user",  "site_path", "site_url"].each do |key|
       assert_equal :string, @foo.env_types[key], "@foo.env_types[#{key}] should be :string"
     end
     ["balance_hosts", "db_hosts", "web_hosts"].each do |key|
@@ -74,23 +84,27 @@ class TestEnvironTestCase < Test::Unit::TestCase
   end
   
   def test_hosts_pseudokey
-    @foo.set_env :web_hosts => '', :db_hosts => ''
+    @foo.set_env :web_hosts => '', :db_hosts => '', :balance_hosts => ''
     assert_equal [], @foo.web_hosts, "assigning '' to web_hosts should create empty list"
     assert_equal [], @foo.db_hosts, "assigning '' to db_hosts should create empty list"
+    assert_equal [], @foo.balance_hosts, "assigning '' to balance_hosts should create empty list"
     @foo.set_env :hosts => 'foo,bar'
     assert_equal ['bar', 'foo'], @foo.hosts, "assigning foo,bar to hosts should create ['bar', 'foo']"
+    ['web_hosts', 'db_hosts', 'balance_hosts'].each do |hst|
+      assert_equal @foo.send(hst.to_sym), @foo.hosts, "hosts should be same as @foo.#{hst}"
+    end
   end
   
   def test_env_hash
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
-    "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    "site", "site_user", "site_path", "site_url", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
       assert_not_nil @foo.env_hash[key], "@foo.env_hash[#{key}] should not be nil"
     end
   end
   
   def test_env_defaults
     ["ssh_timeout", "site_base_port", "site_num_servers", "host_admin", "local_admin", "local_admin_email",
-    "site", "site_user", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
+    "site", "site_user", "site_path", "site_url", "balance_hosts", "db_hosts", "web_hosts"].each do |key|
       assert_not_nil @foo.env_defaults[key], "@foo.env_defaults[#{key}] should not be nil"
     end
   end
@@ -105,7 +119,7 @@ class TestEnvironTestCase < Test::Unit::TestCase
       @foo.send "#{key}=", tmp
       assert_equal tmp, @foo.send(key.to_sym), "@foo.#{key} should now be #{tmp}"
     end
-    ["host_admin", "local_admin", "local_admin_email", "site", "site_user"].each do |key|
+    ["host_admin", "local_admin", "local_admin_email", "site", "site_user", "site_path", "site_url"].each do |key|
       tmp = "#{key}-changed"
       @foo.send "#{key}=", tmp
       assert_equal tmp, @foo.send(key.to_sym), "@foo.#{key} should now be #{tmp}"

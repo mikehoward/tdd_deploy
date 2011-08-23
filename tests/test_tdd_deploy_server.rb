@@ -21,7 +21,7 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
   # end
 
   def test_set_env_rb_exists
-    assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_server.rb')), "tdd_deploy_server exists"
+    assert File.exists?(File.join(BIN_DIR, 'tdd_deploy_server')), "tdd_deploy_server exists"
   end
   # 
   # def test_tester_accessors
@@ -36,8 +36,8 @@ class TestTddDeployServerTestCase < Test::Unit::TestCase
   # 
   # def test_run_all_tests
   #   ret = @tester.run_all_tests
-  #   assert ret, "@tester should run all tests and return true: #{@tester.test_failures}"
-  #   # puts @tester.test_results
+  #   assert ret, "@tester should run all tests and return true: #{@tester.failure_messages}"
+  #   # puts @tester.formatted_test_results
   # end
   # 
   # def test_rack_interface

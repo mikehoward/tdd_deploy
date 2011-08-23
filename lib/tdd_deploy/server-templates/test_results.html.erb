@@ -1,0 +1,159 @@
+<% def reset_even_odd
+  @even_odd = 'even'
+end
+def even_odd
+  @even_odd ||= 'even'
+  @even_odd = @even_odd == 'even' ? 'odd' : 'even'
+end
+ %>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>TddDeploy for <%= site %></title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Mike">
+	<style type="text/css" media="screen">
+	  body {
+	    font-family: sans-serif;
+	  }
+	  h1 { font-size: 1.4em;}
+	  h2 { font-size: 1.2em;}
+	  
+    #test-summary {
+      padding: 10px;
+      border: 3px solid black;
+      margin: 1em;
+    }
+	  #test-summary-passed { color:#080; }
+	  #test-summary-failed { color: #800;}
+	  
+	  #configurator {
+	    padding: 10px;
+	    border: 3px solid gray;
+	    margin: 1em;
+	  }
+
+	  .env-summary {
+	    padding: 10px;
+	    border: 3px solid black;
+	    background:#ddd;
+	    margin: 1em;
+	  }
+    .env-summary table { width: 100%;}
+	  .env-summary th { text-align: left;}
+	  .env-key { width: 20em;}
+	  .env-val {}
+	 .test-result-group {
+	   padding: 10px;
+	   margin: 10px;
+/*     border: solid 1px black;*/
+	   background: white;
+	 }
+	 .test-result {
+	   padding: 1em;
+	   margin: 1em;
+	 }
+	 .test-result-success { background: #dfd;border: 3px #080 solid; }
+	 .test-result-failure { background: #fee; border: 3px #800 solid;}
+	 .test-result-summary-success {  color: #080; }
+	 .test-result-summary-failure {  color: #800; }
+	 .test-result-detail li { list-style: none;	   
+	 }
+	 .test-result-detail-success {
+	   color: #080;
+	 }
+	 .test-result-detail-failure {
+	   color: #800;
+	 }
+	 .odd { background: #eee;}
+	 .even { background: #ccc;}
+	</style>
+	<!-- Date: 2011-08-20 -->
+</head>
+<body>
+  <div id="test-summary">
+    <h1>TddDeloy Test Results: site: <%= site %> / hosts: <%= hosts %></h1>
+  
+    <% if (failures = total_failures) == 0 %>
+    <p id="test-summary-passed">All Tests Passed</p>
+    <% else %>
+    <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
+    <% end %>
+    <p><a href="/">Re-Run All Tests</a></p>
+    <p><a href="/?failed-tests=<%= failed_tests.join(',') %>">Re-Run Failed Tests</a></p>
+  </div>  <!-- test summary -->
+
+  
+  <div class="env-summary">
+    <h2>Host / Site environment</h2>
+    <table>
+      <% reset_even_odd %>
+      <% env_hash.keys.sort.each do |k| %>
+        <tr class="<%= even_odd %>"><th class="env-key"><%= k %></th> <td class="env-value"><%= env_hash[k] %></td></tr>
+      <% end %>
+    </table>
+  </div>
+  
+  <div id="configurator">
+    <h2>Configurator Directory</h2>
+    <p><a href="/?run_configurator">Run configurator</a></p>
+    <% reset_even_odd %>
+    <% tdd_deploy_configs = 'tdd_deploy_configs' %>
+    <% if File.exists? tdd_deploy_configs %>
+    <table>
+      <tr class="<%= even_odd %>"><td><%= tdd_deploy_configs %></td></tr>
+      <% ['balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir| %>
+      <% host_path = File.join(tdd_deploy_configs, host_dir) %>
+      <% unless File.exists? host_path %>
+      <tr class="<%= even_odd %>"><td></td><td><%= host_dir %> does not exist</td></tr>
+        <% next %>
+      <% end %>
+      <tr class="<%= even_odd %>"><td></td><td><%= host_dir %>/</td></tr>
+
+      <% ['config', 'site'].each do |subdir| %>
+        <% subdir_path = File.join(host_path, subdir) %>
+        <% unless File.exists? subdir_path %>
+        <tr class="<%= even_odd %>"><td></td><td></td><td><%= subdir %> does not exist</td></tr>
+          <% next %>
+        <% end %>
+        <tr class="<%= even_odd %>"><td></td><td></td><td><%= subdir %>/</td></tr>
+      
+          <% Dir.new(subdir_path).each do |fname| %>
+          <% next if fname[0] == '.' %>
+        <tr class="<%= even_odd %>"><td></td><td></td><td></td><td><%= fname %></td></tr>
+          <% end %>
+        <% end %>
+      <% end %>
+    </table>
+    <% else %>
+    <p>No Site Configuration files exist</p>
+    <% end %>
+  </div> <!-- configurator -->
+
+  <% test_result_index = 0 %>
+  <% test_results.each do |key, messages| %>
+    <% if failure_count(key) == 0 %>
+    <div class="test-result test-result-success">
+    <h2 id="test-result-<%= key %>"><span  class="test-result-group">Results for '<%= key %>'</span></h2>
+    <p class="test-result-summary-success">All Tests Passed</p>
+    <% else %>
+    <div class="test-result test-result-failure">
+      <h2 id="test-result-<%= key %>"><span  class="test-result-group">Results for '<%= key %>'</span></h2>
+    <p class="test-result-summary-failure"><%= failure_count(key) %> of <%= test_count(key) %> Failed</p>
+    <% end %>
+    <ul class="test-result-detail">
+      <% reset_even_odd %>
+      <% messages.each do |msg| %>
+      <% result, success_msg = msg %>
+      <% test_result_index += 1 %>
+      <li id="test-result-detail-<%= test_result_index %>" class="<%= even_odd %> <%= result ? 'test-result-detail-success' : 'test-result-detail-failure' %>">
+        <%= success_msg %>
+      </li>
+      <% end %>
+    </ul>
+    </div> <!-- test-result for <%= key %> -->
+  <% end %>
+</body>
+</html>

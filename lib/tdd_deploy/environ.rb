@@ -15,10 +15,13 @@ module TddDeploy
     #
     # Environment variables:
     #
+    # All environment variables can be read or set via accessors - which are created
+    # dynamically. They do _not_ show up in the Yard doc.
+    #
     # === Integer variables
     # * 'ssh_timeout' - timeout in seconds used to terminate remote commands fired off by ssh
     # * 'site_base_port' - Base port for site servers. For example, if a pack of mongrels or thin
-    # servers provide the rails end of the web site, they listen on 'site_base_port', +1, etd
+    #servers provide the rails end of the web site, they listen on 'site_base_port', +1, etd
     # * 'site_num_servers' - number of mongrels or thins to spin up
     #
     # === String variables
@@ -26,15 +29,22 @@ module TddDeploy
     # * 'local_admin' - user name of on local hosts which can ssh into remote hosts via public key authentication
     # * 'local_admin_email' - email of local admin who should receive monitoring emails
     # * 'site' - name of site This should satisfy /[a-z][a-z0-9_]*.
+    # * 'site_path' - the absolute path to DocumentRoot for the site
+    # * 'site_url' - the url for the site (w/o scheme - as in 'www.foo.com')
+    # * 'site_aliases' - aliases for the site. The delimiters will depend on your web server
     # * 'site_user' - name of site user. TddDeploy assumes that each site will have a unique user on the remote host.
     # this makes it easy to tell nginx and monit where to find configuration files for each site [both
     # know how to included globbed paths]
     #
     # === List Variables
-    # * 'hosts' - list of all hosts - defaults to balance_hosts + db_hosts + web_hosts
     # * 'balance_hosts' - load balancing servers [may be empty, in which case 'hosts' is used]
     # * 'db_hosts' - hosts which run the database server [may be empty, in which case 'hosts' is used]
     # * 'web_hosts' - hosts which run the web server [may be empty, in which case 'hosts' is used]
+    #
+    # === Pseudo Variable
+    # * 'hosts' - list of all hosts - always returns balance_hosts + db_hosts + web_hosts.
+    #may be assigned to if all three host lists are identical, otherwise raises an exception.
+    # 'tdd_deploy_context' hides it from view unless it can be assigned
     
   module Environ
     
@@ -78,6 +88,9 @@ module TddDeploy
       'local_admin_email' => :string,
 
       'site' => :string,
+      'site_url' => :string,
+      'site_aliases' => :string,
+      'site_path' => :string,
       'site_user' => :string,
 
       # 'hosts' => :list,
@@ -96,18 +109,23 @@ module TddDeploy
       'local_admin_email' => "local_admin@bogus.tld",
 
       'site' => "site",
+      'site_url' => 'www.site.com',                    # don't include the scheme
+      'site_aliases' => '',
+      'site_path' => '/home/site_user/site.d/current',   # default for Capistrano
       'site_user' => "site_user",
 
       # 'hosts' => "bar,foo",
-      'balance_hosts' => '',
-      'db_hosts' => 'bar,foo',
-      'web_hosts' => 'bar,foo',
+      'balance_hosts' => 'arch',
+      'db_hosts' => 'arch',
+      'web_hosts' => 'arch',
     }
     
+    # Hash mapping environment variable to type
     def env_types
       DataCache.env_types
     end
 
+    # Hash of default values - which are hokey
     def env_defaults
       DataCache.env_defaults
     end
@@ -124,9 +142,10 @@ module TddDeploy
         when :list then DataCache.env_hash[k] = self.str_to_list(v)
         else
           if k == 'hosts'
-            if DataCache.env_hash['web_hosts'] == DataCache.env_hash['db_hosts']
+            if DataCache.env_hash['web_hosts'] == DataCache.env_hash['db_hosts'] &&  DataCache.env_hash['web_hosts'] == DataCache.env_hash['balance_hosts']
               DataCache.env_hash['web_hosts'] =
-                DataCache.env_hash['db_hosts'] = self.str_to_list(v)
+                DataCache.env_hash['db_hosts'] =
+                  DataCache.env_hash['balance_hosts'] = self.str_to_list(v)
             else
               raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
               # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
@@ -138,6 +157,7 @@ module TddDeploy
       end
     end
     
+    # clears the environment hash. Really - it's useless until re-initialized
     def clear_env
       DataCache.env_hash = {}
     end
@@ -176,6 +196,10 @@ module TddDeploy
             ensure
               f.close
             end
+            # add any missing env keys
+            (self.env_types.keys - self.env_hash.keys).each do |key|
+              self.env_hash[key] = self.env_defaults[key]
+            end
             return self.env_hash
           else
             raise RuntimeError.new("Unable to open #{path} for reading")
@@ -191,6 +215,7 @@ module TddDeploy
       nil
     end
 
+    # bursts comma/space separated string into a sorted, unique array
     def str_to_list str
       case
       when str.is_a?(String) then str.split(/[\s,]+/).uniq.sort
@@ -200,11 +225,13 @@ module TddDeploy
       end
     end
     
+    # packs an array into a comma separated string
     def list_to_str key
       tmp = self.env_hash[key]
       tmp.is_a?(Array) ? tmp.join(',') : tmp.to_s
     end
 
+    public
     # saves the current environment in the current working directory in the file
     # 'site_host_setup.env' [aka TddDeploy::Environ::ENV_FNAME]
     def save_env
@@ -231,7 +258,8 @@ module TddDeploy
     def hosts=(list)
       if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
         self.web_hosts =
-          self.db_hosts = self.str_to_list(list)
+          self.db_hosts =
+            self.balance_hosts = self.str_to_list(list)
       else
         raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
       end

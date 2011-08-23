@@ -1,5 +1,7 @@
 # TddDeploy
 
+NOTE: version 0.1.0 is not useable
+
 **This is a prototype. It works, but is ugly and almost certainly the wrong design.**
 
 *I think there is room in host provisioning and site installation for TDD tools which
@@ -24,14 +26,48 @@ It is designed to complement Capistrano, so it follows Capistrano's opinions:
 While, Capistrano focuses on deploying the Rails application, TddDeploy focuses on validating the
 configuration of both the deployment host(s) and a Rails application.
 
+## Shortcuts
+
+* [How to Use](#how_to_use)
 * [Installation](#installation)
 * [Uninstall](#uninstall)
 * [Assumptions](#tdddeploy_assumptions)
 * [Data which is managed](#data_managed)
-* [Tests](#tests)
+* [Deployment Tests](#tests)
 * [Command Line Utilities](#utilities)
 
-## Installation
+<h2 id="how_to_use">How to Use</h2>
+
+The short version is: install it, edit the variables (using `tdd_deploy_context`), start
+the server (on localhost:9292) (using `tdd_deploy_server`) and hack until things turn
+green.
+
+The longer version is:
+
+* go to the root of you Rails App
+* Install the gem
+* run the install rake task
+* at a terminal, run 'tdd\_deploy\_context'. It's ugly, but works. The variables you need
+to set are described in [Data](#data_managed)
+* look over the tests in '/lib/tdd\_deploy'. They should be pretty self explanatory.
+To change them, move to /lib/tdd\_deploy/local\_tests and hack away. Copy and hack to
+add more tests. [hint: if you do this, you should copy or move everything .../local\_tests (and
+maybe run rake tdd\_deploy:flush\_gem\_tests)]
+* edit your Capistrano config/deploy.rb file. Use roles balance\_hosts, db\_hosts, and
+web\_hosts
+* muck with the deployment files in lib/tdd\_deploy/site-erb. There are files for each class
+of hosts. add, edit, etc files as you see fit.
+* open a terminal and start the server.
+* open a browser window and visit 'localhost:9292'.
+* build your deployment site-config filees by clicking the 'Run Configurator' button.
+* hack your Capistrano config/deploy.rb to copy the files to the appropriate roles.
+* run Capistrano to deploy
+* muck with your deployment sites until all tests pass
+
+Note: The server is supposed to automatically pick up new or modified tests, but
+you may have to restart it when you change or add one
+
+<h2 id="installation">Installation</h2>
 
     gem install tdd_deploy
     
@@ -39,7 +75,7 @@ configuration of both the deployment host(s) and a Rails application.
     
     bundle
     
-    rake tdd_deploy:install # which copies the existing tests to *lib/tdd_deploy*
+    rake tdd_deploy:install_gem_tests # which copies the existing tests to 'lib/tdd_deploy'
 
     tdd_deploy_context # fill in your data
     
@@ -49,21 +85,25 @@ To add or modify tests, copy a similar test to *lib/tdd\_deploy/local_tests* and
 it. Feel free to delete any tests you don't want from *lib/tdd\_deploy/hosts\_tests*
 and *lib/tdd\_deploy/site\_tests*.
 
-## Uninstall
+<h2 id="uninstall">Uninstall</h2>
 
-    rake tdd_deploy:uninstall # removes all tests from *lib/tdd_deploy/hosts_tests* & *lib/tdd_deploy/site_tests*
+    # remove all tests from lib/tdd_deploy/hosts_tests & lib/tdd_deploy/site_tests
+    rake tdd_deploy:uninstall
+    
+    # optionally remove created config files
+    rm -rf 
     
     (remove from Gemfile)
     
     bundle
 
-## TddDeploy Assumptions
+<h2 id="tdddeploy_assumptions">TddDeploy Assumptions</h2>
 
 The assumptions are all implemented in variables which define the provisioning and
 deployment environment. TddDeploy refers to them as 'environment' variables, but to
 avoid confusion, we'll call them 'context variables'.
 
-## Data Managed
+<h2 id="data_managed">Data Managed</h2>
 
 All variables are saved in a file named **site\_host\_setup.env** which will (typically)
 be in the root directory of the Rails application. The format is 'name=value'.
@@ -73,7 +113,7 @@ Three kinds of values:
 * int - which are integers
 * string - which are strings - trimmed of leading and trailing white space
 * lists - comma (with optional white space) separated words. Words may not contain
-embedded white space.
+embedded white space. [internally, lists are Ruby Arrays]
 
 ### Provisioning Context Variables
 
@@ -93,11 +133,14 @@ notifications]
 * ssh\_timeout - int - number of seconds before an ssh command times out and is flagged as
 a failure.
 
-* hosts - list - this is a list of all the hosts. This list is used to check that the communication
-works.
-* web\_hosts - list - a list of hosts which run web servers
-* db\_hosts - list - a list of hosts which run database servers
 * balance\_hosts - list - a list of hosts which do load balancing
+* db\_hosts - list - a list of hosts which run database servers
+* web\_hosts - list - a list of hosts which run web servers
+
+* hosts - pseudo-list - this is a list of all the hosts. This list is used to check that the communication
+works. **hosts** is kind of a convenience. It is computed as the unique sum of the other hosts
+lists. It only shows up as an assignable variable if all three of the other lists are identical.
+It can always be used to reference all hosts, but cannot be assigned to if any list differs.
 
 It's easer to understand assumptions if they relate to a concrete example. So, assume we
 are setting up a Rails app on hosts 'foo', 'bar' and 'baz'. Their duties are:
@@ -116,20 +159,23 @@ So in this setup:
 ### Site Deployment Context Variables
 
 * site - string - name of the site. Should satisfy [a-z][a-z0-9_]+, but this isn't checked.
+Defaults to 'site'
+* site\_path - string - absolute path to DocumentRoot of site.  No default.
+* site\_url - string - URL of site [typically something like www.example.com].
+This string is not checked, but should be a single domain name.
+No default.
+* site\_aliases - string - as few or many aliases for the site\_url. No default
 * site\_user - string - name of user on all remote **web\_hosts** which host the app.
 We assume that this user will own all installations of the application on all the **web\_hosts**
 and will be the database user which owns and connects to the database on all the **db\_hosts**.
-
-**NOTE:** The following variables are tentative and will probably be dropped from TddDeploy. They actually
-belong in deployment and app provisioning (whatever that means) rather than testing.
-
+Defaults to 'site\_user'.
 * site\_base\_port - int - TddDeploy assumes that the Rails app will fronted by a reverse proxy
-- nginx or apache - and will run a small pack of *thin* or *mongrel* servers. The **site\_base\_port**
+\- nginx or apache - and will run a small pack of *thin* or *mongrel* servers. The **site\_base\_port**
 is the beginning of the block of ports used by the pack of servers.
 * site\_num\_servers - int - number of *thin* or *mongrel* (or whatever) servers which the app
 expects to have running.
 
-## Tests
+<h2 id="tests">Deployment Tests</h2>
 
 You must install the tests by running **rake tdd\_deploy:install**. This copies the
 tests in the gem to your app's directory - into *lib/tdd\_deploy/*.
@@ -141,10 +187,15 @@ Tests live in *lib/tdd_deploy* in one of three subdirectories:
 * lib/tdd\_deploy/local\_tests - initially empty. Create tests there by copying and hacking.
 The **uninstall** rake task does *not* remove tests from this directory.
 
-## Utilities
+<h2 id="utilities">Utilities</h2>
 
 There are two utilities:
 
-* tdd_deploy_context - a command line utility for managing Host and Site context variables
-* tdd_deploy_server - a command line utility which starts up the test results server on localhost,
+* tdd\_deploy\_context - a command line utility for managing Host and Site context variables
+* tdd\_deploy\_server - a command line utility which starts up the test results server on localhost,
 port 9292.
+
+<h2>Code Tests</h2>
+
+The code is tested against an Arch linux server running as a virtual host on my machine with
+my setup. YMMV.
