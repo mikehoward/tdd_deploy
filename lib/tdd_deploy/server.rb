@@ -16,18 +16,35 @@ module TddDeploy
     LOCAL_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'local_tests')
     TEMPLATE_PATH = File.join(LIB_DIR, 'tdd_deploy', 'server-templates', 'test_results.html.erb')
 
-    attr_accessor :test_classes, :query_hash, :failed_tests
+    attr_accessor :test_classes, :query_hash
   
-    # accepts env_hash arguments. It's just as easy to instantiate and then change
-    # the variables using self.set_env
     def initialize *args
-      @already_defined = TddDeploy.constants
-      load_all_tests
-      if args.last.is_a? Hash
-        self.set_env args.last
-        self.save_env
-      end
+      raise RuntimeError.new("No Environment File") unless File.exists? TddDeploy::Environ::ENV_FNAME
       super
+      load_all_tests
+    end
+    
+    # failed_tests returns a unique, sorted list of strings. It just seemed easier to
+    # do it in the accessors than take the chance of using push, pop, etc and mucking it
+    # up - like I did before.
+    def failed_tests
+      @failed_tests ||= []
+      raise RuntimeError.new("@failed_tests is not an Array: #{@failed_tests.inspect}") unless @failed_tests.is_a? Array
+      @failed_tests = @failed_tests.map { |x| x.to_s }.uniq.sort
+    end
+    
+    # failed_tests= does the right thing for all kinds of input variations.
+    def failed_tests=(value)
+      begin
+        value = value.split(/[\s,]+/) if value.is_a? String
+        value = [value] unless value.is_a? Array
+      
+        @failed_tests = @failed_tests.to_a unless @failed_tests.is_a? Array
+
+        @failed_tests = (@failed_tests + value.map { |x| x.to_s }).uniq
+      rescue
+        @failed_tests = (@failed_tests.to_a.map { |x| x.to_s } + value.to_a.map { |x| x.to_s }).uniq.sort
+      end
     end
 
     # rack interface. takes an env Hash and returns [code, headers, body]
@@ -39,6 +56,8 @@ module TddDeploy
         configurator = TddDeploy::Configurator.new
         configurator.make_configuration_files
       end
+
+      load_all_tests
       
       if query_hash['failed-tests']
         remove_failed_tests
@@ -62,7 +81,7 @@ module TddDeploy
       [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
           TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
         if File.exists?(dir)
-          puts "gathering tests from #{dir}"
+          # puts "gathering tests from #{dir}"
           Dir.new(dir).each do |fname|
             next if fname[0] == '.'
 
@@ -89,7 +108,7 @@ module TddDeploy
       reset_tests
 
       ret = true
-      @failed_tests = []
+      self.failed_tests = []
       self.test_classes.each do |klass|
         ret &= run_all_tests_in_class(klass)
       end
@@ -101,6 +120,7 @@ module TddDeploy
       read_env
       ret = true
       test_list = test_list.split(/[\s,]+/) if test_list.is_a? String
+      self.failed_tests -= test_list
       test_list.each do |test|
         ret &= run_a_test test
       end
@@ -109,7 +129,7 @@ module TddDeploy
 
     private
 
-    # not presently used
+    # used by 
     def run_all_tests_in_class klass
       read_env
       obj = klass.new
@@ -117,17 +137,17 @@ module TddDeploy
       # puts "#{klass}.instance_methods: #{klass.instance_methods(false)}"
       klass.instance_methods(false).each do |func|
         test_result = obj.send func.to_sym
-        @failed_tests.push(func) unless test_result
+        self.failed_tests.push(func) unless test_result
         ret &= test_result
       end
       ret
     end
     
     def run_a_test test
-      read_env
-      obj = @test_to_class_map[test].new
+      return false unless (klass = @test_to_class_map[test])
+      obj = klass.new
       test_result = obj.send test.to_sym
-      @failed_tests.push(test) unless test_result
+      self.failed_tests.push(test) unless test_result
       test_result
     end
     
@@ -145,7 +165,7 @@ module TddDeploy
     end
         
     def new_query_string
-      str = "failed-tests=" + URI.escape(@failed_tests.join(',')) unless @failed_tests.nil? || @failed_tests.empty?
+      "failed-tests=" + URI.escape(self.failed_tests.join(',')) unless @failed_tests.empty?
     end
 
   end
