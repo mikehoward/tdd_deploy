@@ -40,7 +40,8 @@ class TestEnvironTestCase < Test::Unit::TestCase
     @foo.clear_env
     system('TMP=/tmp/t-$$; trap "rm $TMP; exit" 0 1 2 3 15 ;cp site_host_setup.env $TMP ; sed -e 1d $TMP >site_host_setup.env')
     @foo.read_env
-    assert_equal @foo.env_types.keys.sort, @foo.env_hash.keys.sort, "read_env should set all keys"
+    non_pseudo_keys = @foo.env_types.reject {|k,t| t == :pseudo }.keys.sort
+    assert_equal non_pseudo_keys, @foo.env_hash.keys.sort, "read_env should set all keys"
   end
   
   def test_response_to_accessors

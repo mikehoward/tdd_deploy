@@ -235,7 +235,13 @@ module TddDeploy
             end
             # add any missing env keys
             (self.env_types.keys - self.env_hash.keys).each do |key|
-              self.env_hash[key] = self.env_defaults[key]
+              case self.env_types[key]
+              when :pseudo then next
+              when :list
+                self.env_hash[key] = str_to_list(self.env_defaults[key])
+              else
+                self.env_hash[key] = self.env_defaults[key]
+              end
             end
             return self.env_hash
           else

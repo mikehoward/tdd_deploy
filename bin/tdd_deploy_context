@@ -19,7 +19,7 @@ class TddDeployEnv
 
   def show_env
     puts "============================================="
-    self.env_types.keys.each do |k|
+    self.env_types.keys.sort.each do |k|
       v = self.send(k.to_sym)
       printf "%-20s: %s\n", k, v
     end
