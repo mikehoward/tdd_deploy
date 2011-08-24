@@ -11,7 +11,7 @@ end
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>TddDeploy for <%= site %></title>
+	<title>TddDeploy (<%= TddDeploy::VERSION %>) for <%= site %></title>
 	<meta name="generator" content="TextMate http://macromates.com/">
 	<meta name="author" content="Mike">
 	<style type="text/css" media="screen">
@@ -74,7 +74,7 @@ end
 </head>
 <body>
   <div id="test-summary">
-    <h1>TddDeloy Test Results: site: <%= site %> / hosts: <%= hosts %></h1>
+    <h1>TddDeploy (<%= TddDeploy::VERSION %>) Test Results: site: <%= site %> / hosts: <%= hosts %></h1>
   
     <% if (failures = total_failures) == 0 %>
     <p id="test-summary-passed">All Tests Passed</p>

@@ -5,10 +5,7 @@ set :scm, :subversion
 # Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
 
 set :user, 'site_user'
-role :web, "web1", "web2"                          # Your HTTP server, Apache/etc
-role :app, "app1", "app2", "app3"                          # This may be the same as your `Web` server
-role :db,  "db_primary", :primary => true # This is where Rails migrations will run
-role :db,  "db2", "db3"
+server 'app_server', :app, :db, :web, :primary => true
 
 # if you're still using the script/reaper helper you will need
 # these http://github.com/rails/irs_process_scripts
