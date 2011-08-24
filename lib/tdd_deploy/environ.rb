@@ -1,3 +1,5 @@
+require 'tdd_deploy/capfile'
+
 module TddDeploy
 
     # == module TddDeploy::Environ
@@ -37,14 +39,23 @@ module TddDeploy
     # know how to included globbed paths]
     #
     # === List Variables
+    # * 'app_hosts' - hosts running a ruby app which must have a ruby available and will be served
+    #via a reverse proxy
     # * 'balance_hosts' - load balancing servers [may be empty, in which case 'hosts' is used]
     # * 'db_hosts' - hosts which run the database server [may be empty, in which case 'hosts' is used]
     # * 'web_hosts' - hosts which run the web server [may be empty, in which case 'hosts' is used]
+    # * 'capfile_paths' - relative paths to capistrano recipe files. Defaults to './config/deploy.rb'
     #
-    # === Pseudo Variable
+    # === Pseudo Variables
     # * 'hosts' - list of all hosts - always returns balance_hosts + db_hosts + web_hosts.
     #may be assigned to if all three host lists are identical, otherwise raises an exception.
-    # 'tdd_deploy_context' hides it from view unless it can be assigned
+    #'tdd_deploy_context' hides it from view unless it can be assigned
+    # * 'app' - list of all hosts in the :app role of the Capistrano recipes
+    # * 'db' - list of all hosts in the :db role of the Capistrano recipes
+    # * 'migration_hosts' - list of all hosts in the :db role with option :primary => true
+    #of the Capistrano recipes
+    # * 'web' - list of all hosts in the :web role of the Capistrano recipes
+    
     
   module Environ
     
@@ -54,7 +65,7 @@ module TddDeploy
     # include TddDeploy::Environ
     class DataCache
       class << self
-        attr_accessor :env_hash, :env_types, :env_defaults
+        attr_accessor :env_hash, :env_types, :env_defaults, :capfile
       end
     end
     
@@ -77,6 +88,17 @@ module TddDeploy
         DataCache.env_hash = hash
       end
     end
+
+    def capfile
+      raise RuntimeError.new('Attempt to access capfile data w/o capfile_paths defined') unless DataCache.env_hash['capfile_paths']
+      unless DataCache.capfile
+        DataCache.capfile = TddDeploy::Capfile.new
+        DataCache.env_hash['capfile_paths'].each do |path|
+          DataCache.capfile.load_recipes path
+        end
+      end
+      DataCache.capfile
+    end
     
     DataCache.env_types = {
       'ssh_timeout' => :int,
@@ -93,10 +115,17 @@ module TddDeploy
       'site_path' => :string,
       'site_user' => :string,
 
-      # 'hosts' => :list,
+      'app_hosts' => :list,
       'balance_hosts' => :list,
+      'capfile_paths' => :list,
       'db_hosts' => :list,
       'web_hosts' => :list,
+      
+      'hosts' => :pseudo,
+      'app' => :pseudo,
+      'db' => :pseudo,
+      'migration_hosts'  => :pseudo,
+      'web' => :pseudo,
     }
     
     DataCache.env_defaults ||= {
@@ -114,7 +143,10 @@ module TddDeploy
       'site_path' => '/home/site_user/site.d/current',   # default for Capistrano
       'site_user' => "site_user",
 
+      'capfile_paths' => './config/deploy.rb',
+
       # 'hosts' => "bar,foo",
+      'app_hosts' => 'arch',
       'balance_hosts' => 'arch',
       'db_hosts' => 'arch',
       'web_hosts' => 'arch',
@@ -140,19 +172,24 @@ module TddDeploy
         when :int then DataCache.env_hash[k] = v.to_i
         when :string then DataCache.env_hash[k] = v.to_s
         when :list then DataCache.env_hash[k] = self.str_to_list(v)
-        else
+        when :pseudo then
           if k == 'hosts'
-            if DataCache.env_hash['web_hosts'] == DataCache.env_hash['db_hosts'] &&  DataCache.env_hash['web_hosts'] == DataCache.env_hash['balance_hosts']
+            if (tmp = DataCache.env_hash['web_hosts']) == DataCache.env_hash['db_hosts'] \
+                &&  tmp == DataCache.env_hash['balance_hosts'] \
+                &&  tmp == DataCache.env_hash['app_hosts']
               DataCache.env_hash['web_hosts'] =
                 DataCache.env_hash['db_hosts'] =
-                  DataCache.env_hash['balance_hosts'] = self.str_to_list(v)
+                  DataCache.env_hash['balance_hosts'] =
+                    DataCache.env_hash['app_hosts'] = self.str_to_list(v)
             else
               raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
               # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
             end
           else
-            raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
+            next
           end
+        else
+          raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
         end
       end
     end
@@ -243,31 +280,19 @@ module TddDeploy
         when :string then f.write "#{k}=#{v}\n"
         when :list then
           f.write "#{k}=#{self.list_to_str(k)}\n" unless k == 'hosts'
+        when :pseudo then next
         else
           raise RuntimeError("unknown key: #{k}")
         end
       end
       f.close
     end
-
-    # accessors for all defined env variables
-    def hosts
-      (self.web_hosts.to_a + self.db_hosts.to_a + self.balance_hosts.to_a).uniq.sort
-    end
     
-    def hosts=(list)
-      if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
-        self.web_hosts =
-          self.db_hosts =
-            self.balance_hosts = self.str_to_list(list)
-      else
-        raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
-      end
-    end
-
-    # create accessors for all keys in env_types
+    # create accessors for all keys in env_types which are not :pseudo variables
     tmp = ''
     DataCache.env_types.each do |k, t|
+      next if t == :pseudo
+      
       tmp +=<<-EOF
       def #{k}
         self.env_hash['#{k}']
@@ -290,11 +315,40 @@ module TddDeploy
         tmp +=<<-EOF
         def #{k}=(v)
          self.env_hash['#{k}'] = self.str_to_list(v)
+         DataCache.capfile = nil if '#{k}' == 'capfile_paths'
         end
         EOF
       end
     end
+    
+    ['app', 'db', 'web'].each do |k|
+      tmp +=<<-EOF
+      def #{k}
+        self.capfile.role_to_host_list :#{k}
+      end
+      EOF
+    end
 
     class_eval tmp
+
+    # accessors for all defined env variables
+    def hosts
+      (self.web_hosts.to_a + self.db_hosts.to_a + self.balance_hosts.to_a + self.app_hosts.to_a).uniq.sort
+    end
+    
+    def hosts=(list)
+      if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
+        self.web_hosts =
+          self.db_hosts =
+            self.balance_hosts =
+              self.app_hosts = self.str_to_list(list)
+      else
+        raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
+      end
+    end
+    
+    def migration_hosts
+      self.capfile.migration_host_list
+    end
   end
 end

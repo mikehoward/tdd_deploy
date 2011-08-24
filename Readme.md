@@ -44,8 +44,8 @@ green.
 
 The longer version is:
 
-* go to the root of you Rails App
 * Install the gem
+* go to the root of you app
 * run the install rake task
 * at a terminal, run 'tdd\_deploy\_context'. It's ugly, but works. The variables you need
 to set are described in [Data](#data_managed)
@@ -53,8 +53,7 @@ to set are described in [Data](#data_managed)
 To change them, move to /lib/tdd\_deploy/local\_tests and hack away. Copy and hack to
 add more tests. [hint: if you do this, you should copy or move everything .../local\_tests (and
 maybe run rake tdd\_deploy:flush\_gem\_tests)]
-* edit your Capistrano config/deploy.rb file. Use roles balance\_hosts, db\_hosts, and
-web\_hosts
+* edit your Capistrano Capfile - or config/deploy.rb if you're running Railse
 * muck with the deployment files in lib/tdd\_deploy/site-erb. There are files for each class
 of hosts. add, edit, etc files as you see fit.
 * open a terminal and start the server.
@@ -114,6 +113,8 @@ Three kinds of values:
 * string - which are strings - trimmed of leading and trailing white space
 * lists - comma (with optional white space) separated words. Words may not contain
 embedded white space. [internally, lists are Ruby Arrays]
+* pseudo - The pseudo variables are 'hosts' - which is a convenience variable &
+variables taken from the roles defined in your Capistrano Capfile (or deploy)
 
 ### Provisioning Context Variables
 
@@ -133,6 +134,7 @@ notifications]
 * ssh\_timeout - int - number of seconds before an ssh command times out and is flagged as
 a failure.
 
+* app\_hosts - list - list of hosts which are running a ruby app
 * balance\_hosts - list - a list of hosts which do load balancing
 * db\_hosts - list - a list of hosts which run database servers
 * web\_hosts - list - a list of hosts which run web servers
@@ -145,6 +147,7 @@ It can always be used to reference all hosts, but cannot be assigned to if any l
 It's easer to understand assumptions if they relate to a concrete example. So, assume we
 are setting up a Rails app on hosts 'foo', 'bar' and 'baz'. Their duties are:
 
+* 'app1' & 'app2' - run the Rails app
 * 'foo' - runs the web server and load balances (somehow) between itself and 'baz'
 * 'bar' - runs the master database server
 * 'baz' - runs both a web server and the slave database server.
@@ -152,12 +155,15 @@ are setting up a Rails app on hosts 'foo', 'bar' and 'baz'. Their duties are:
 So in this setup:
 
 * hosts = foo,bar,baz
+* app\_hosts = app1,app2
 * web\_hosts = foo,baz
 * db\_hosts = bar,baz
-* balance_hosts = foo
+* balance\_hosts = foo
 
 ### Site Deployment Context Variables
 
+* capfile\_paths - list - list of paths to Capistrano recipe files. Defaults to './config/deploy.rb',
+which is generally right for Rails apps.
 * site - string - name of the site. Should satisfy [a-z][a-z0-9_]+, but this isn't checked.
 Defaults to 'site'
 * site\_path - string - absolute path to DocumentRoot of site.  No default.
@@ -174,6 +180,14 @@ Defaults to 'site\_user'.
 is the beginning of the block of ports used by the pack of servers.
 * site\_num\_servers - int - number of *thin* or *mongrel* (or whatever) servers which the app
 expects to have running.
+
+In addition there are four (4) _pseudo_ variables. These are read-only and take their values
+from your Capistrano configuration
+
+* app - hosts defined in the 'app' role
+* db - hosts defined in the 'db' role
+* web - hosts defined in the 'web' role
+* migration\_hosts - hosts defened in the 'db' role which have the option :primary set to true.
 
 <h2 id="tests">Deployment Tests</h2>
 
