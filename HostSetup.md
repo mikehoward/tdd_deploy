@@ -283,7 +283,7 @@ users, in case we need to do different things.
         }
 
         # THIS LINE ADDS SITE CONFIGURATION FILES within the 'http' block
-        include /home/*/site/nginx.conf;
+        include /home/**/nginx.conf;
     }
 
 ## configure postfix
@@ -440,7 +440,7 @@ Install using:
         group server
 
       # include all site monitrc files
-      include /home/*/site/monitrc
+      include /home/**/monitrc
       
       
 Access monit via http through an ssh tunnel:
