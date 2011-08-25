@@ -2,6 +2,9 @@
 
 **This is a prototype. It works, but isn't pretty and polished.**
 
+**NOTE: HTML copies of this and two more documents are in lib/tdd\_deploy/doc. The other
+two documents are my personal notes on setting up hosts and sites. YMMV.**
+
 TddDeploy supports deployment configuration management and black box testing of deployment
 hosts.
 

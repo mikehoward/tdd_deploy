@@ -83,56 +83,29 @@ ge
 
     gem install bundler
     
-### install and configure thin
+### install and configure configuration fragments
 
-    SITE_PATH=<absolute path to site>
-    PORT_BASE=<lowest port number the thin daemons will use>
-    SERVERS=<number of server daemons to spin up>
+After running `rake tdd_deploy:install` there will be a bunch of files
+below `lib/tdd_deploy/site-erb`. This directory is arranged as:
+`lib/tdd_deploy/site-erb/<host-group>/<dest-dir>`, where:
 
-thin config file:
+* `host-group` is one of `app_hosts`, `balance_hosts`, `db_hosts`, or `web_hosts`.
+The files under this subdirectory are for all hosts in the designated host group
+* `dest-dir` is either:
+** `config` - these are files which go into the configuration directory for your app.
+For a Rails app, this will be 'config' - or more formally: `site_doc_root/config`
+** `site` - these are files which go in `site_special_dir`. They are not expected to
+change (too much) between deployments and are expected to be `included` by `monit`
+or `nginx`. If you're using `apache` and some other monitoring tool, then you'll
+have to do something appropriate.
 
-    --- 
-    chdir: $SITE_PATH
-    environment: production
-    address: 127.0.0.1
-    port: $PORT_BASE
-    timeout: 30
-    log: log/thin.log
-    pid: $SITE_PATH/tmp/pids/thin.pid
-    max_conns: 1024
-    max_persistent_conns: 512
-    require: []
+### Fix Permissions
 
-    wait: 30
-    servers: $SERVERS
-    daemonize: true
+This configuration scheme expects system applications - such as nginx and monit - to
+be able to `include` configuration fragments buried in the home directory of the
+user which owns the app.
 
-### create .monitrc file to manage thin server
-
-    TBD - Steal this from Mike Clark's recipes book
-    
-    
-    # check $SITE - cobbled from apache check
-    check file $SITE_bin with path /usr/sbin/$SITE
-      if failed md5 checksum and
-         expect the sum 869b5a36e7f2d553197675fec58c3917 then stop
-      if failed permission 755 then stop
-      if failed uid root then stop
-      if failed gid root then stop
-      alert mike@clove.com on {
-            checksum, permission, uid, gid # , unmonitor
-        } with the mail-format { subject: "/usr/sbin/$SITE modified " }
-      group server
-
-    # check $SITE - cobbled from apache check
-    check file postmaster_bin with path /usr/bin/postmaster
-      if failed md5 checksum and
-         expect the sum 13704b8f314a0aa92e7d03557595f2de then stop
-      if failed permission 755 then stop
-      if failed uid root then stop
-      if failed gid root then stop
-      alert mike@clove.com on {
-            checksum, permission, uid, gid # , unmonitor    } with the mail-format { subject: "/usr/sbin/postmaster modified " }
-      group server
-
-    
+It's fashionable now to set home directory permissions to 0700, which isn't a problem
+for daemons running as root, but it may foul up non-root daemons. So, if everything
+passes all tests, but some daemon is not picking up the configuration, try changing the
+home & site\_special\_dir permissions to 0755. 
