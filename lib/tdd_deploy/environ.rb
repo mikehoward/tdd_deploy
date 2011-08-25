@@ -32,6 +32,7 @@ module TddDeploy
     # * 'local_admin_email' - email of local admin who should receive monitoring emails
     # * 'site' - name of site This should satisfy /[a-z][a-z0-9_]*.
     # * 'site_doc_root' - the absolute path to DocumentRoot for the site
+    # * 'site_special_dir' - absolute path to site special directory - for system configuration fragments, commands, etc
     # * 'site_url' - the url for the site (w/o scheme - as in 'www.foo.com')
     # * 'site_aliases' - aliases for the site. The delimiters will depend on your web server
     # * 'site_user' - name of site user. TddDeploy assumes that each site will have a unique user on the remote host.
@@ -113,6 +114,7 @@ module TddDeploy
       'site_url' => :string,
       'site_aliases' => :string,
       'site_doc_root' => :string,
+      'site_special_dir' => :string,
       'site_user' => :string,
 
       'app_hosts' => :list,
@@ -141,6 +143,7 @@ module TddDeploy
       'site_url' => 'the site url - www.foo.com',
       'site_aliases' => 'all the site aliases we need to put in nginx/apache configuration fragments',
       'site_doc_root' => 'this is DocumentRoot for the site. probably /home/site_user/site/current',
+      'site_special_dir' => 'directory for monitrc, nginx config fragments, monit commands, etc',
       'site_user' => 'userid that the app lives in. This need not be host_admin. It\' separate so multiple sites can live on the same host',
 
       'app_hosts' => 'list of hosts the app will be installed on. Must have app stuff, like rvm, ruby, bundler, etc',
@@ -168,7 +171,8 @@ module TddDeploy
       'site' => "site",
       'site_url' => 'www.site.com',                    # don't include the scheme
       'site_aliases' => '',
-      'site_doc_root' => '/home/site_user/site.d/current',   # default for Capistrano
+      'site_doc_root' => '/home/site_user/site/current',   # default for Capistrano
+      'site_special_dir' => '/home/site_user/site_special',
       'site_user' => "site_user",
 
       'capfile_paths' => './config/deploy.rb',

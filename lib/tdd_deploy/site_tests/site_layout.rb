@@ -33,19 +33,19 @@ module TddDeploy
     end
 
     def test_site_dir_exists
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "~/site"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_special_dir}"
     end
 
     def test_monitrc
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "~/site/monitrc"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_special_dir}/monitrc"
     end
 
     def test_nginx_conf
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "~/site/nginx.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_special_dir}/nginx.conf"
     end
 
     def test_one_thin_server
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "~/site/one_thin_server"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_special_dir}/one_thin_server"
     end
   end
 end
