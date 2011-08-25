@@ -3,6 +3,7 @@ config/
 site/
 *~
 doc/
+!lib/tdd_deploy/doc/
 garbage
 junk
 site_host_setup.env
