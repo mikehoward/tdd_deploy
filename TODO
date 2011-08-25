@@ -1,4 +1,0 @@
-DONE sort keys in save_env
-DONE add capistrano variables to server output
-DONE add warning if (app_hosts) != (app + migration_hosts), db_hosts != db, (web_server + balance_hosts?) != web and cap variables don't match
-DONE add app_hosts subdir under lib/tdd_deploy/site-erb
