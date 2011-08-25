@@ -104,4 +104,32 @@ class RunMethodsTestCase < Test::Unit::TestCase
     end
   end
 
+  def test_copy_dir_to_remote_on_hosts_as
+    host_list = ['arch']
+    dir_name = 'test_copy_dir_to_remote_on_hosts_as'
+    Dir.mkdir dir_name unless File.exists? dir_name
+    ['foo', 'bar', 'baz'].each do |fname|
+      path = File.join(dir_name, fname)
+      f = File.new(path, 'w')
+      f.write "This is a file named #{fname}\n"
+      f.close
+    end
+    
+    assert copy_dir_to_remote_on_hosts_as('site_user', host_list, dir_name, dir_name), 'copy directory should work'
+
+    result_hash = run_on_hosts_as 'site_user', host_list, "ls"
+    assert_match /test_copy_dir_to_remote_on_hosts_as/, result_hash['arch'][0], "ls of home should contain directory name"
+
+    result_hash = run_on_hosts_as 'site_user', host_list, "ls #{dir_name}"
+    listing = result_hash['arch'][0].split(/\n/)
+    ['foo', 'bar', 'baz'].each do |fname|
+      assert listing.include?(fname), "listing of remote directory contains '#{fname}'"
+    end
+    ['foo', 'bar', 'baz'].each do |fname|
+      path = File.join dir_name, fname
+      stdout, stderr, cmd = run_in_ssh_session_on_host_as 'site_user', 'arch', "cat #{path}"
+      assert_equal "This is a file named #{fname}\n", stdout, "copy_dir... should copy file contents of #{fname}"
+    end
+  end
+
 end
