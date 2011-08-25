@@ -84,8 +84,10 @@ end
     <% else %>
     <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
     <% end %>
-    <p><a href="/">Re-Run All Tests</a></p>
-    <p><a href="/?failed-tests=<%= failed_tests.join(',') %>">Re-Run Failed Tests</a></p>
+    <p>
+      <a href="/">Re-Run All Tests</a> 
+      <a href="/?failed-tests=<%= failed_tests.join(',') %>">Re-Run Failed Tests</a>
+    </p>
   </div>  <!-- test summary -->
 
   
@@ -93,9 +95,10 @@ end
     <h2>Host / Site environment</h2>
     <h3>TddDeploy Variables</h3>
     <table>
+      <tr><th>Env Var (hover for info)</th><th>Current Value</th></tr>
       <% reset_even_odd %>
       <% env_hash.keys.sort.each do |k| %>
-        <tr class="<%= even_odd %>"><th class="env-key"><%= k %></th> <td class="env-value"><%= env_hash[k] %></td></tr>
+        <tr class="<%= even_odd %>"><th class="env-key" title="<%= server_obj.env_desc[k] %>"><%= k %></th> <td class="env-value"><%= env_hash[k] %></td></tr>
       <% end %>
     </table>
 
@@ -108,8 +111,9 @@ end
     <% end %>
     <table>
       <% reset_even_odd %>
+      <tr><th>Cap Var (hover for info)</th><th>Current Value</th></tr>
       <% ['app', 'db', 'migration_hosts', 'web'].each do |k| %>
-      <tr class="<%= even_odd %>"><th class="env-key"><%= k %></th><td class="env-value"><%= server_obj.send(k.to_sym) %></td></tr>
+      <tr class="<%= even_odd %>"><th class="env-key" title="<%= server_obj.env_desc[k] %>"><%= k %></th><td class="env-value"><%= server_obj.send(k.to_sym) %></td></tr>
       <% end %>
     </table>
   </div>

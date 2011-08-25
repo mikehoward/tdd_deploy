@@ -74,10 +74,12 @@ as HOST_USER
     exists. If it does, it will be sourced by bash and will attempt a global install.
 
 ### install ruby 1.9.2
-
+ge
     rvm install 1.9.2
     (wait)
     rvm use 1.9.2 --default
+    
+### install bundler
 
     gem install bundler
     

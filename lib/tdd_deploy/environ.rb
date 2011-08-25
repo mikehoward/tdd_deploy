@@ -65,7 +65,7 @@ module TddDeploy
     # include TddDeploy::Environ
     class DataCache
       class << self
-        attr_accessor :env_hash, :env_types, :env_defaults, :capfile
+        attr_accessor :env_hash, :env_types, :env_desc, :env_defaults, :capfile
       end
     end
     
@@ -127,6 +127,34 @@ module TddDeploy
       'migration_hosts'  => :pseudo,
       'web' => :pseudo,
     }
+
+    DataCache.env_desc = {
+      'ssh_timeout' => "ssh activity timeout in seconds",
+      'site_base_port' => "the lowest port number used by your mongrel or thin cluster",
+      'site_num_servers' => "number of mongrel or thin servers in your cluster",
+
+      'host_admin' => "userid of the non-root administrator on all your remote hosts",
+      'local_admin' => "userid on your local host which can ssh into all hosts as host_admin, root, and site_user",
+      'local_admin_email' => "email address of the recipient of montoring email - currently put in monitrc fragments",
+
+      'site' => 'name of site - will be the name of the deployment directory - as in /home/user/site/',
+      'site_url' => 'the site url - www.foo.com',
+      'site_aliases' => 'all the site aliases we need to put in nginx/apache configuration fragments',
+      'site_path' => 'this is DocumentRoot for the site. probably /home/site_user/site/current',
+      'site_user' => 'userid that the app lives in. This need not be host_admin. It\' separate so multiple sites can live on the same host',
+
+      'app_hosts' => 'list of hosts the app will be installed on. Must have app stuff, like rvm, ruby, bundler, etc',
+      'balance_hosts' => 'list of hosts running load balancers',
+      'capfile_paths' => 'list of paths to Capistrano Capfile or ./config/deploy.rb or wherever you recipes are. Only used to get definitions of Capistrano roles.',
+      'db_hosts' => 'list of hosts running database servers',
+      'web_hosts' => 'list of hosts running real web servers - Apache or Nginx or ...',
+      
+      'hosts' => 'uniquified sum of app_hosts, balance_hosts, db_hosts, and web_hosts',
+      'app' => 'list of servers in the Capistrano :app role',
+      'db' => 'list of servers in the Capistrano :db role',
+      'migration_hosts'  => 'list of servers in the Capistrano :db role with :primary => truen',
+      'web' => 'list of servers in the Capistrano :web role',
+    }
     
     DataCache.env_defaults ||= {
       'ssh_timeout' => 5,
@@ -160,6 +188,10 @@ module TddDeploy
     # Hash of default values - which are hokey
     def env_defaults
       DataCache.env_defaults
+    end
+    
+    def env_desc
+      DataCache.env_desc
     end
 
     # set_env(value_hash {}) - convenience method which sets values of the environment

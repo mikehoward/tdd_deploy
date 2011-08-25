@@ -12,7 +12,7 @@ task :test do
 end
 
 desc "Create Gem"
-task :gem do
+task :gem => :html do
   system 'gem build tdd_deploy.gemspec'
   system "cp tdd_deploy-#{tdd_deploy_version}.gem ~/Rails/GemCache/gems/"
   system "(cd ~/Rails/GemCache ; gem generate_index -d . )"
@@ -34,6 +34,6 @@ task :html do
   Dir.new('.').each do |fname|
     next unless fname =~ /.md$/
     fname_html = File.basename(fname, '.md') + '.html'
-    system "redcarpet #{fname} > #{fname_html}"
+    system "redcarpet #{fname} | sed -e 's/VERSION/#{TddDeploy::VERSION}/' > #{fname_html}"
   end
 end

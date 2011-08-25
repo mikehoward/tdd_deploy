@@ -1,4 +1,4 @@
-# TddDeploy - 0.1.7
+# TddDeploy - VERSION
 
 **This is a prototype. It works, but isn't pretty and polished.**
 
