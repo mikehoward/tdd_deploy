@@ -14,7 +14,7 @@ namespace :tdd_deploy do
   desc "deletes tdd_deploy_configs/ & all it's files"
   task :rm_configs do
     tdd_deploy_configs = './tdd_deploy_configs'
-    Dir.rm_r tdd_deploy_configs if File.exists? tdd_deploy_configs
+    FileUtils.rm_r tdd_deploy_configs if File.exists? tdd_deploy_configs
   end
   
   desc "copies tests & config templates to lib/tdd_deploy/"

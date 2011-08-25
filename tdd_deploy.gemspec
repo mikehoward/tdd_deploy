@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency('capistrano')
   s.add_dependency('net-ping')
   s.add_dependency('net-ssh')
+  s.add_dependency('rack')
 
   s.add_development_dependency('ZenTest', "~> 4.5.0")
   s.add_development_dependency('autotest-growl')

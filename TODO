@@ -1,2 +1,0 @@
-TODO rewrite run_cmd.sh as a ruby script which passes commands to the various run... scripts
-TODO modify run_cmd.sh to run on hosts by passing the command to ruby after requiring tests/test_helpers.rb

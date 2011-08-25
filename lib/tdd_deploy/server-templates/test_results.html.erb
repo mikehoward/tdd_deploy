@@ -20,6 +20,7 @@ end
 	  }
 	  h1 { font-size: 1.4em;}
 	  h2 { font-size: 1.2em;}
+    th, td { text-align: left;}
 	  
     #test-summary {
       padding: 10px;
@@ -69,6 +70,9 @@ end
 	 }
 	 .odd { background: #eee;}
 	 .even { background: #ccc;}
+	 .red { color: #800;}
+	 .green { color: #080;}
+	 .warn { color: #f80;}
 	</style>
 	<!-- Date: 2011-08-20 -->
 </head>
@@ -81,17 +85,51 @@ end
     <% else %>
     <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
     <% end %>
-    <p><a href="/">Re-Run All Tests</a></p>
-    <p><a href="/?failed-tests=<%= failed_tests.join(',') %>">Re-Run Failed Tests</a></p>
+    <h3>Actions:</h3>
+    <table>
+      <% reset_even_odd %>
+      <tr class="<%= even_odd %>">
+        <th>Tests</th>
+        <td><a href="/">All Tests</a></td>
+        <td><a href="/?failed-tests=<%= failed_tests.join(',') %>">Failed Tests</a></td>
+      </tr>
+      <tr class="<%= even_odd %>">
+        <th>Configurator</th>
+        <td><a href="/?run_configurator">Run Configurator</a></td>
+        <td></td>
+      </tr>
+      <!-- <tr class="<%= even_odd %>">
+        <th>Installation</th>
+        <td>Site Specials</td>
+        <td>Site Config</td>
+      </tr> -->
+    </table>
   </div>  <!-- test summary -->
 
   
   <div class="env-summary">
     <h2>Host / Site environment</h2>
+    <h3>TddDeploy Variables</h3>
     <table>
+      <tr><th>Env Var (hover for info)</th><th>Current Value</th></tr>
       <% reset_even_odd %>
       <% env_hash.keys.sort.each do |k| %>
-        <tr class="<%= even_odd %>"><th class="env-key"><%= k %></th> <td class="env-value"><%= env_hash[k] %></td></tr>
+        <tr class="<%= even_odd %>"><th class="env-key" title="<%= server_obj.env_desc[k] %>"><%= k %></th> <td class="env-value"><%= env_hash[k] %></td></tr>
+      <% end %>
+    </table>
+
+    <h3>Capistrano Variables</h3>
+    <% if server_obj.app_hosts.sort != (server_obj.app + server_obj.migration_hosts).uniq.sort %>
+    <p class="warn">'app_hosts' does not match Capistrano 'app' and 'migration_hosts'</p>
+    <% end %>
+    <% if server_obj.db_hosts.uniq.sort != server_obj.db.uniq.sort %>
+    <p class="warn">'db_hosts' does not match Capistrano 'db'</p>
+    <% end %>
+    <table>
+      <% reset_even_odd %>
+      <tr><th>Cap Var (hover for info)</th><th>Current Value</th></tr>
+      <% ['app', 'db', 'migration_hosts', 'web'].each do |k| %>
+      <tr class="<%= even_odd %>"><th class="env-key" title="<%= server_obj.env_desc[k] %>"><%= k %></th><td class="env-value"><%= server_obj.send(k.to_sym) %></td></tr>
       <% end %>
     </table>
   </div>
@@ -104,7 +142,7 @@ end
     <% if File.exists? tdd_deploy_configs %>
     <table>
       <tr class="<%= even_odd %>"><td><%= tdd_deploy_configs %></td></tr>
-      <% ['balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir| %>
+      <% ['app_hosts', 'balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir| %>
       <% host_path = File.join(tdd_deploy_configs, host_dir) %>
       <% unless File.exists? host_path %>
       <tr class="<%= even_odd %>"><td></td><td><%= host_dir %> does not exist</td></tr>
