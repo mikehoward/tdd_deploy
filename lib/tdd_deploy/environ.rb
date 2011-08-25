@@ -31,7 +31,7 @@ module TddDeploy
     # * 'local_admin' - user name of on local hosts which can ssh into remote hosts via public key authentication
     # * 'local_admin_email' - email of local admin who should receive monitoring emails
     # * 'site' - name of site This should satisfy /[a-z][a-z0-9_]*.
-    # * 'site_path' - the absolute path to DocumentRoot for the site
+    # * 'site_doc_root' - the absolute path to DocumentRoot for the site
     # * 'site_url' - the url for the site (w/o scheme - as in 'www.foo.com')
     # * 'site_aliases' - aliases for the site. The delimiters will depend on your web server
     # * 'site_user' - name of site user. TddDeploy assumes that each site will have a unique user on the remote host.
@@ -79,18 +79,18 @@ module TddDeploy
     end
     
     def env_hash=(hash)
-      raise ArgumentError.new("env_hash=(): arg must be a hash") unless hash.is_a? Hash
+      raise ::ArgumentError.new("env_hash=(): arg must be a hash") unless hash.is_a? Hash
       if !(tmp = hash.keys - DataCache.env_types.keys).empty?
-        raise ArgumentError.new("env_hash=(): Illegal Keys in value: #{tmp.join(',')}")
+        raise ::ArgumentError.new("env_hash=(): Illegal Keys in value: #{tmp.join(',')}")
       elsif !(tmp = DataCache.env_types.keys - hash.keys).empty?
-        raise ArgumentError.new("env_hash=(): Missing Keys in value: #{tmp.join(',')}")
+        raise ::ArgumentError.new("env_hash=(): Missing Keys in value: #{tmp.join(',')}")
       else
         DataCache.env_hash = hash
       end
     end
 
     def capfile
-      raise RuntimeError.new('Attempt to access capfile data w/o capfile_paths defined') unless DataCache.env_hash['capfile_paths']
+      raise ::RuntimeError.new('Attempt to access capfile data w/o capfile_paths defined') unless DataCache.env_hash['capfile_paths']
       unless DataCache.capfile
         DataCache.capfile = TddDeploy::Capfile.new
         DataCache.env_hash['capfile_paths'].each do |path|
@@ -112,7 +112,7 @@ module TddDeploy
       'site' => :string,
       'site_url' => :string,
       'site_aliases' => :string,
-      'site_path' => :string,
+      'site_doc_root' => :string,
       'site_user' => :string,
 
       'app_hosts' => :list,
@@ -140,7 +140,7 @@ module TddDeploy
       'site' => 'name of site - will be the name of the deployment directory - as in /home/user/site/',
       'site_url' => 'the site url - www.foo.com',
       'site_aliases' => 'all the site aliases we need to put in nginx/apache configuration fragments',
-      'site_path' => 'this is DocumentRoot for the site. probably /home/site_user/site/current',
+      'site_doc_root' => 'this is DocumentRoot for the site. probably /home/site_user/site/current',
       'site_user' => 'userid that the app lives in. This need not be host_admin. It\' separate so multiple sites can live on the same host',
 
       'app_hosts' => 'list of hosts the app will be installed on. Must have app stuff, like rvm, ruby, bundler, etc',
@@ -168,7 +168,7 @@ module TddDeploy
       'site' => "site",
       'site_url' => 'www.site.com',                    # don't include the scheme
       'site_aliases' => '',
-      'site_path' => '/home/site_user/site.d/current',   # default for Capistrano
+      'site_doc_root' => '/home/site_user/site.d/current',   # default for Capistrano
       'site_user' => "site_user",
 
       'capfile_paths' => './config/deploy.rb',
@@ -214,14 +214,14 @@ module TddDeploy
                   DataCache.env_hash['balance_hosts'] =
                     DataCache.env_hash['app_hosts'] = self.str_to_list(v)
             else
-              raise RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
+              raise ::RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
               # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
             end
           else
             next
           end
         else
-          raise ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
+          raise ::ArgumentError.new("#{self}#reset_env(): Illegal environment key: #{k}")
         end
       end
     end
@@ -256,10 +256,10 @@ module TddDeploy
                     self.send "#{key}=".to_sym, $2
                     # self.env_hash[key] = self.env_types[key] == :list ? self.str_to_list($2) : $2.to_s
                   else
-                    raise ArugmentError.new("TddDeploy::Environ#read_env: Error in #{TddDeploy::Error::ENV_FNAME}: #{line_no}: Illegal Key: #{key}")
+                    raise ::ArugmentError.new("TddDeploy::Environ#read_env: Error in #{TddDeploy::Error::ENV_FNAME}: #{line_no}: Illegal Key: #{key}")
                   end
                 else
-                  raise ArugmentError.new("TddDeploy::Environ#read_env: Error in #{TddDeploy::Error::ENV_FNAME}: #{line_no}: Unmatched Line: #{line}}")
+                  raise ::ArugmentError.new("TddDeploy::Environ#read_env: Error in #{TddDeploy::Error::ENV_FNAME}: #{line_no}: Unmatched Line: #{line}}")
                 end
               end
             ensure
@@ -277,7 +277,7 @@ module TddDeploy
             end
             return self.env_hash
           else
-            raise RuntimeError.new("Unable to open #{path} for reading")
+            raise ::RuntimeError.new("Unable to open #{path} for reading")
           end
         elsif dir_path.length <= 1
           # reached root level, so initialize to defaults and exit
@@ -296,7 +296,7 @@ module TddDeploy
       when str.is_a?(String) then str.split(/[\s,]+/).uniq.sort
       when str.is_a?(Array) then str.uniq.sort
       else
-        raise ArgumentError.new("str_to_list: #{str}")
+        raise ::ArgumentError.new("str_to_list: #{str}")
       end
     end
     
@@ -320,7 +320,7 @@ module TddDeploy
           f.write "#{k}=#{self.list_to_str(k)}\n" unless k == 'hosts'
         when :pseudo then next
         else
-          raise RuntimeError("unknown key: #{k}")
+          raise ::RuntimeError.new("unknown key: #{k}")
         end
       end
       f.close
@@ -381,7 +381,7 @@ module TddDeploy
             self.balance_hosts =
               self.app_hosts = self.str_to_list(list)
       else
-        raise RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
+        raise ::RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
       end
     end
     

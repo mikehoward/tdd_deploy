@@ -84,10 +84,12 @@ end
     <% else %>
     <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
     <% end %>
-    <p>
-      <a href="/">Re-Run All Tests</a> 
-      <a href="/?failed-tests=<%= failed_tests.join(',') %>">Re-Run Failed Tests</a>
-    </p>
+    <h3>Actions:</h3>
+    <ul>
+      <li>Re-Run <a href="/">All Tests</a> </li>
+      <li>Re-Run <a href="/?failed-tests=<%= failed_tests.join(',') %>">Failed Tests</a></li>
+      <li>Run <a href="/?run_configurator">Configurator</a></li>
+    </ul>
   </div>  <!-- test summary -->
 
   

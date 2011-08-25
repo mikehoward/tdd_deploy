@@ -131,7 +131,7 @@ module TddDeploy
     def remove_failed_tests
       tmp = {}
       Stats.test_results.each do |host, results|
-        tmp[host] = results.select { |tmp| tmp[0] }
+        tmp[host] = results.select { |tmp| tmp[0] }.uniq.sort
       end
       Stats.test_results = tmp
     end
