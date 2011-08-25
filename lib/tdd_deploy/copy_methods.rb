@@ -53,10 +53,22 @@ module TddDeploy
       result
     end
 
+    def append_string_to_remote_file_as userid, host, str, dst
+      result = nil
+      Net::SFTP.start(host, userid) do |sftp|
+        if handle = sftp.open!(dst, 'a+')
+          stat_buf = sftp.fstat! handle
+          result = sftp.write handle, stat_buf.size, str
+          sftp.close! handle
+        end
+      end
+      result
+    end
+
     def copy_string_to_remote_file_as userid, host, str, dst
       result = nil
       Net::SFTP.start(host, userid) do |sftp|
-        result = sftp.file.open(dst, "w")  do |f|
+        result = sftp.file.open(dst, 'w')  do |f|
           f.write str
         end
       end
