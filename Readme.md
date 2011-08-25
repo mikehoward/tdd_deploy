@@ -1,17 +1,20 @@
-# TddDeploy
+# TddDeploy - 0.1.7
 
-NOTE: version 0.1.0 is not useable
+**This is a prototype. It works, but isn't pretty and polished.**
 
-**This is a prototype. It works, but is ugly and almost certainly the wrong design.**
+TddDeploy supports deployment configuration management and black box testing of deployment
+hosts.
 
-*I think there is room in host provisioning and site installation for TDD tools which
-are independent of the provisioning framework - which is what TddDeploy attempts to
-be.*
+It is designed to complement Capistrano
 
-TddDeploy implements command execution on remote hosts to aid in host provisioning and
-deployment of multiple Rails applications on one or more hosts.
+It does this by:
 
-It is designed to complement Capistrano, so it follows Capistrano's opinions:
+* defining and managing an opinionated set of data which specify hosts and user accounts
+* automate testing of remote hosts via running commands - locally and remotely via ssh
+* provides a rack compatible local web server to run the tests
+* as a bonus, it also creates host & site specific configuration files from erb template.
+
+It is designed to complement Capistrano - hence the opinionated:
 
       Capistrano makes a few assumptions about your servers. In order to use Capistrano, you will need to comply
       with these assumptions:

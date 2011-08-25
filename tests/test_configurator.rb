@@ -21,13 +21,13 @@ class TestTddDeployConfiguratorTestCase < Test::Unit::TestCase
     FileUtils.rm_rf 'tdd_deploy_configs'
     @configurator.make_configuration_files
     assert File.exists?('tdd_deploy_configs'), "tdd_deploy_configs/ exists"
-    [ 'balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir|
+    ['app_hosts', 'balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir|
       host_path = File.join('tdd_deploy_configs', host_dir)
       assert File.exists?(host_path), "#{host_path} exists"
       ['config', 'site'].each do |subdir|
         subdir_path = File.join(host_path, subdir)
         assert File.exists?(subdir_path), "#{subdir_path} exists"
-        assert Dir.new(subdir_path).entries.length > 2, "#{subdir_path} has 3 or more entries"
+        assert Dir.new(subdir_path).entries.length >= 2, "#{subdir_path} has 3 or more entries"
       end
     end
   end

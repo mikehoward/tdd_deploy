@@ -279,7 +279,7 @@ module TddDeploy
     # 'site_host_setup.env' [aka TddDeploy::Environ::ENV_FNAME]
     def save_env
       f = File.new(TddDeploy::Environ::ENV_FNAME, "w")
-      self.env_types.keys.each do |k|
+      self.env_types.keys.sort.each do |k|
         v = self.env_hash[k] || ''
         case self.env_types[k]
         when :int then f.write "#{k}=#{v}\n"

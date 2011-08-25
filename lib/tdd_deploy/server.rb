@@ -9,6 +9,9 @@ module TddDeploy
   #
   # implements a simple 'rack' server. Methods are either used internally or called
   # from the web page during page reloads.
+  #
+  # It only displays one page - which is defined in the gem in
+  # lib/tdd_deploy/server-templates/test_results.html.erb.
   class Server < TddDeploy::Base
     LIB_DIR = File.expand_path('../..', __FILE__)
     HOST_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'host_tests')
@@ -52,7 +55,7 @@ module TddDeploy
     def call(env)
       self.query_hash = parse_query_string(env['QUERY_STRING'])
 
-      if query_hash['run_configurator']
+      if self.query_hash['run_configurator']
         require 'tdd_deploy/configurator'
         configurator = TddDeploy::Configurator.new
         configurator.make_configuration_files
@@ -162,7 +165,9 @@ module TddDeploy
       f = File.new(TEMPLATE_PATH)
       template = ERB.new f.read, nil, '<>'
       f.close
-      
+
+      # add 'server_obj' so accessors are accessible from erb template
+      server_obj = self
       template.result(binding)
     end
         

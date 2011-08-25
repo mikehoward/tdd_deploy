@@ -39,7 +39,7 @@ module TddDeploy
       tdd_deploy_configs = File.join Dir.pwd, 'tdd_deploy_configs'
       Dir.mkdir(tdd_deploy_configs) unless File.exists? tdd_deploy_configs
 
-      ['balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir|
+      ['app_hosts', 'balance_hosts', 'db_hosts', 'web_hosts'].each do |host_dir|
         host_path = File.join(tdd_deploy_configs, host_dir)
         Dir.mkdir(host_path) unless File.exists? host_path
 

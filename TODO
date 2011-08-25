@@ -1,2 +1,4 @@
-TODO rewrite run_cmd.sh as a ruby script which passes commands to the various run... scripts
-TODO modify run_cmd.sh to run on hosts by passing the command to ruby after requiring tests/test_helpers.rb
+DONE sort keys in save_env
+DONE add capistrano variables to server output
+DONE add warning if (app_hosts) != (app + migration_hosts), db_hosts != db, (web_server + balance_hosts?) != web and cap variables don't match
+DONE add app_hosts subdir under lib/tdd_deploy/site-erb
