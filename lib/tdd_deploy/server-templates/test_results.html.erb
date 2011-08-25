@@ -20,6 +20,7 @@ end
 	  }
 	  h1 { font-size: 1.4em;}
 	  h2 { font-size: 1.2em;}
+    th, td { text-align: left;}
 	  
     #test-summary {
       padding: 10px;
@@ -85,11 +86,24 @@ end
     <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
     <% end %>
     <h3>Actions:</h3>
-    <ul>
-      <li>Re-Run <a href="/">All Tests</a> </li>
-      <li>Re-Run <a href="/?failed-tests=<%= failed_tests.join(',') %>">Failed Tests</a></li>
-      <li>Run <a href="/?run_configurator">Configurator</a></li>
-    </ul>
+    <table>
+      <% reset_even_odd %>
+      <tr class="<%= even_odd %>">
+        <th>Tests</th>
+        <td><a href="/">All Tests</a></td>
+        <td><a href="/?failed-tests=<%= failed_tests.join(',') %>">Failed Tests</a></td>
+      </tr>
+      <tr class="<%= even_odd %>">
+        <th>Configurator</th>
+        <td><a href="/?run_configurator">Run Configurator</a></td>
+        <td></td>
+      </tr>
+      <!-- <tr class="<%= even_odd %>">
+        <th>Installation</th>
+        <td>Site Specials</td>
+        <td>Site Config</td>
+      </tr> -->
+    </table>
   </div>  <!-- test summary -->
 
   
