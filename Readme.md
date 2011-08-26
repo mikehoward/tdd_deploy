@@ -31,3 +31,19 @@ It is designed to complement Capistrano - hence the opinionated:
 
 While, Capistrano focuses on deploying the Rails application, TddDeploy focuses on validating the
 configuration of both the deployment host(s) and a Rails application.
+
+# Branch Information
+
+**master** is more-or-less stable. The more-or-less is that this project is still in flux.
+It matches the current version which is on rubygems.org and is up to date with the latest
+tagged version of the **0-1** branch.
+
+**0-1** is current development. I'm trying to remember to tag the version with 'pre<something>',
+but there are no guarantees.
+
+**0-0** is dead ended.
+
+# Notes on Unit Tests
+
+These tests run on my system with a virtual host running Arch Linux with host name 'arch'
+and a bunch of accounts. The tests won't work without a conforming setup.
