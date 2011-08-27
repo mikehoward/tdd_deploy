@@ -81,7 +81,7 @@ end
     <h1>TddDeploy (<%= TddDeploy::VERSION %>) Test Results: site: <%= site %> / hosts: <%= hosts %></h1>
   
     <% if (failures = total_failures) == 0 %>
-    <p id="test-summary-passed">All Tests Passed</p>
+    <p id="test-summary-passed">All <%= total_tests %> Tests Passed</p>
     <% else %>
     <p id="test-summary-failed"><%= failures %> of <%= total_tests %> Tests Failed</p>
     <% end %>

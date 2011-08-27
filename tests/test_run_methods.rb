@@ -19,24 +19,24 @@ class RunMethodsTestCase < Test::Unit::TestCase
     refute ping_host('non-existent-host'), 'cannot ping non-existent-host'
   end
 
-  def test_run_in_ssh_session_on_host_as
-    stdout, stderr, cmd = run_in_ssh_session_on_host_as 'mike', 'arch', 'pwd'
+  def test_run_on_a_host_as
+    stdout, stderr, cmd = run_on_a_host_as 'mike', 'arch', 'pwd'
     assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"
     assert_nil stderr, "should not return error if can connect to host"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
       
-    stdout, stderr = run_in_ssh_session_on_host_as 'mike', 'no-host', 'pwd'
+    stdout, stderr = run_on_a_host_as 'mike', 'no-host', 'pwd'
     refute_equal "/home/mike\n", stdout, "should not return home directory for bad host name"
     refute_nil stderr, "should return an error message for bad host name"
     assert_equal 'pwd', cmd, 'cmd should be pwd'
       
-    stdout, stderr = run_in_ssh_session_on_host_as 'no-user', 'arch', 'pwd'
+    stdout, stderr = run_on_a_host_as 'no-user', 'arch', 'pwd'
     refute_equal "/home/mike\n", stdout, "should not return home directory for bad user name"
     refute_nil stderr, "should return an error message for bad user name"
   end
   
-  def test_run_in_ssh_session_on_host_as
-    stdout, stderr, cmd = run_in_ssh_session_on_host_as 'mike', 'arch' do
+  def test_run_on_a_host_as
+    stdout, stderr, cmd = run_on_a_host_as 'mike', 'arch' do
       'pwd'
     end
     assert_equal "/home/mike\n", stdout, "should be able to run as mike on host arch"

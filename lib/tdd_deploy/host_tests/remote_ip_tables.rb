@@ -1,4 +1,4 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::RemoteIpTables
@@ -6,7 +6,7 @@ module TddDeploy
   # checks to see if iptables is working by attempting to connect to each host on a collection
   # of 'interesting' ports. the ports probed are: 20, 23, 25, 53, 5432, 2812
   #
-  class RemoteIpTables < TddDeploy::Base
+  class RemoteIpTables < TddDeploy::TestBase
     # tcp_some_blocked_ports - checks TCP ports
     def tcp_some_blocked_ports
       self.hosts.each do |host|

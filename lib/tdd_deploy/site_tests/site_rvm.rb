@@ -1,10 +1,10 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # = TddDeploy::SiteUser
   #
   # tests all hosts to make sure that the local user can log on as *site_user*
-  class SiteRvm < TddDeploy::Base
+  class SiteRvm < TddDeploy::TestBase
     def test_rvm
       deploy_test_on_hosts_as self.site_user, self.app_hosts, /RVM is the Ruby/, "rvm should be installed" do
         'source ~/.rvm/scripts/rvm ;  rvm'

@@ -13,7 +13,7 @@ module TddDeploy
       result
     end
 
-    def copy_file_to_remote_on_hosts_as userid, host_list, src, dst
+    def copy_file_to_remote_hosts_as userid, host_list, src, dst
       result = true
       host_list = [host_list] if host_list.is_a? String
       host_list.uniq.each do |host|
@@ -22,8 +22,8 @@ module TddDeploy
       result
     end
 
-    def copy_dir_to_remote_on_hosts_as(userid, host_list, src_dir, dest_dir)
-      raise ::ArgumentError.new("copy_dir_to_remote_on_hosts_as: src_dir does not exist: #{src_dir}") \
+    def copy_dir_to_remote_hosts_as(userid, host_list, src_dir, dest_dir)
+      raise ::ArgumentError.new("copy_dir_to_remote_hosts_as: src_dir does not exist: #{src_dir}") \
           unless File.directory? src_dir
       host_list = [host_list] if host_list.is_a? String
       result = true
@@ -33,7 +33,7 @@ module TddDeploy
       Dir.open(src_dir).each do |fname|
         next if fname[0] == '.'
         path = File.join(src_dir, fname)
-        result &= copy_file_to_remote_on_hosts_as userid, host_list, path, File.join(dest_dir, fname)
+        result &= copy_file_to_remote_hosts_as userid, host_list, path, File.join(dest_dir, fname)
       end
       result
     end
@@ -47,7 +47,7 @@ module TddDeploy
       result
     end
 
-    def append_file_to_remote_on_hosts_as userid, host_list, src, dst
+    def append_file_to_remote_hosts_as userid, host_list, src, dst
       result = true
       host_list = [host_list] if host_list.is_a? String
       host_list.uniq.each do |host|
@@ -56,8 +56,8 @@ module TddDeploy
       result
     end
 
-    def append_dir_to_remote_on_hosts_as(userid, host_list, src_dir, dest_dir)
-      raise ::ArgumentError.new("append_dir_to_remote_on_hosts_as: src_dir does not exist: #{src_dir}") \
+    def append_dir_to_remote_hosts_as(userid, host_list, src_dir, dest_dir)
+      raise ::ArgumentError.new("append_dir_to_remote_hosts_as: src_dir does not exist: #{src_dir}") \
           unless File.directory? src_dir
       host_list = [host_list] if host_list.is_a? String
       result = true
@@ -67,7 +67,7 @@ module TddDeploy
       Dir.open(src_dir).each do |fname|
         next if fname[0] == '.'
         path = File.join(src_dir, fname)
-        result &= append_file_to_remote_on_hosts_as userid, host_list, path, File.join(dest_dir, fname)
+        result &= append_file_to_remote_hosts_as userid, host_list, path, File.join(dest_dir, fname)
       end
       result
     end

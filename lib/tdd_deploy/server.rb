@@ -3,6 +3,7 @@ $:.unshift File.expand_path('../lib', __FILE__)
 
 require 'uri'
 require 'tdd_deploy'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::Server
@@ -83,21 +84,23 @@ module TddDeploy
     # both host_tests and site_tests are clobbered by the rake install task.
     # local_tests is safe.
     def load_all_tests
+      # discard any already defined tests
+      TddDeploy::TestBase.flush_children_methods
+      
+      # reload all tests
       [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
           TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
         if File.exists?(dir)
           # puts "gathering tests from #{dir}"
           Dir.new(dir).each do |fname|
-            next if fname[0] == '.'
-
-            load File.join(dir, fname)
+            load File.join(dir, fname) if fname =~ /\.rb$/
           end
         else
           puts "skipping #{dir} - no such directory"
         end
       end
 
-      self.test_classes = TddDeploy::Base.children - [self.class]
+      self.test_classes = TddDeploy::TestBase.children
 
       @test_to_class_map = {}
       self.test_classes.each do |klass|

@@ -1,10 +1,10 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::RemoteMonit
   #
   # verifies monit executable is present and running on all hosts
-  class RemoteMonit < TddDeploy::Base
+  class RemoteMonit < TddDeploy::TestBase
     def test_monit_installed
       deploy_test_file_exists_on_hosts_as self.host_admin, self.hosts, '/usr/bin/monit', 'monit should be installed'
     end

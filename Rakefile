@@ -18,9 +18,13 @@ task :gem => :html do
   system "(cd ~/Rails/GemCache ; gem generate_index -d . )"
 end
 
-desc "Create Yard Doc"
-task :doc do
+desc "Remove Yard doc directory"
+task :rm_doc do
   FileUtils.rm_r 'doc' if File.exists? 'doc'
+end
+
+desc "Create Yard Doc"
+task :doc => :rm_doc do
   system 'yard'
 end
 

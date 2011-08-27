@@ -1,10 +1,10 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::RemotePostgresql
   #
   # verifies that the postgresql exectuable is both installed and running on db_hosts
-  class RemotePostgresql < TddDeploy::Base
+  class RemotePostgresql < TddDeploy::TestBase
     def test_postgresql_installed
       deploy_test_file_exists_on_hosts_as 'root', self.db_hosts, "/usr/bin/postgres", 'postgres should be installed'
     end

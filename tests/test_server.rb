@@ -26,6 +26,7 @@ class TestServerTestCase < Test::Unit::TestCase
   def teardown
     @tester = nil
     system('rm -f site_host_setup.env')
+    TddDeploy::TestBase.flush_children
   end
   
   def test_env_file_detection

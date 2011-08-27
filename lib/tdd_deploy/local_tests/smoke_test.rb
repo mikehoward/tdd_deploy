@@ -1,4 +1,4 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::SmokeTest
@@ -9,7 +9,7 @@ module TddDeploy
   #
   # * return_true
   # * smoke
-  class SmokeTest < TddDeploy::Base
+  class SmokeTest < TddDeploy::TestBase
     
     # returns true
     def return_true
