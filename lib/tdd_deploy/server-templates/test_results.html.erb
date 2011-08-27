@@ -72,7 +72,13 @@ end
 	 .even { background: #ccc;}
 	 .red { color: #800;}
 	 .green { color: #080;}
-	 .warn { color: #f80;}
+	 .warn {
+	    color: #e0ffff;
+      padding: 5px;
+	    border: 1px solid black;
+	    font-weight: normal;
+	    background: #800000;
+	  }
 	</style>
 	<!-- Date: 2011-08-20 -->
 </head>
@@ -120,10 +126,10 @@ end
 
     <h3>Capistrano Variables</h3>
     <% if server_obj.app_hosts.sort != (server_obj.app + server_obj.migration_hosts).uniq.sort %>
-    <p class="warn">'app_hosts' does not match Capistrano 'app' and 'migration_hosts'</p>
+    <p><span class="warn">Warning: 'app_hosts' does not match Capistrano 'app' and 'migration_hosts'</span></p>
     <% end %>
     <% if server_obj.db_hosts.uniq.sort != server_obj.db.uniq.sort %>
-    <p class="warn">'db_hosts' does not match Capistrano 'db'</p>
+    <p><span class="warn">Warning: 'db_hosts' does not match Capistrano 'db'</span></p>
     <% end %>
     <table>
       <% reset_even_odd %>

@@ -14,7 +14,6 @@ end
 
 class TestBaseTestCase < Test::Unit::TestCase
   def test_tdd_deploy_base_children
-    assert TddDeploy::Base.children.include?(TestBase::Foo), "TddDeploy::Base.children should contain TestBase::Foo"
-    assert TddDeploy::Base.children.include?(TestBase::Bar), "TddDeploy::Base.children should contain TestBase::Bar"
+    assert_equal TddDeploy::Base, TestBase::Foo.superclass, "Foo is a child of TddDeploy::Base"
   end
 end

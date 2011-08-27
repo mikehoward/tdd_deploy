@@ -5,6 +5,12 @@ module TddDeploy
   #
   # provides a base class for host and site tests.
   class TestBase < TddDeploy::Base
+    
+    def initialze
+      super
+      
+    end
+
     # gather up all descendents so we know what tests to run
     class <<self
       attr_writer :children

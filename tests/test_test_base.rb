@@ -3,14 +3,17 @@ $:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'test_helpers'
 require 'tdd_deploy/test_base'
+require 'tdd_deploy/server'
 
 class TestBaseTestCase < Test::Unit::TestCase
   def setup
-    load 'tdd_deploy/host_tests/host_connection.rb'
-    load 'tdd_deploy/host_tests/remote_ip_tables.rb'
+    TddDeploy::Server.new.load_all_tests
   end
   
-  
+  def teardown
+    TddDeploy::Server.new.load_all_tests
+  end
+
   def test_require_subclass
     assert TddDeploy::TestBase.children.include?(TddDeploy::HostConnection), "children must contain TddDeploy::HostConnection"
   end
@@ -26,8 +29,7 @@ class TestBaseTestCase < Test::Unit::TestCase
       assert_equal [], child.instance_methods(false), "Each child should not have any methods"
     end
     
-    load 'tdd_deploy/host_tests/host_connection.rb'
-    load 'tdd_deploy/host_tests/remote_ip_tables.rb'
+    TddDeploy::Server.new.load_all_tests
     TddDeploy::TestBase.children.each do |child|
       assert_not_equal [], child.instance_methods(false), "child #{child} should have methods after reloading"
     end
