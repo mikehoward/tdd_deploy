@@ -31,17 +31,18 @@ module TddDeploy
     
     # runs supplied command on list of hosts as specified user
     def run_on_hosts_as userid, host_list, cmd = nil, &block
+      
       host_list = [host_list] if host_list.is_a? String
       result = {}
       host_list.uniq.each do |host|
-        result[host] = run_in_ssh_session_on_host_as userid, host, cmd, &block
+        result[host] = run_on_a_host_as userid, host, cmd, &block
       end
       result
     end
 
     # Runs the command secified in &block on 'host' as user 'userid'.
     # Returns an array [stdout, stderr] returned from the command.
-    def run_in_ssh_session_on_host_as(userid, host, cmd = nil, &block)
+    def run_on_a_host_as(userid, host, cmd = nil, &block)
       login = "#{userid}@#{host}"
       match = Regexp.new(match) if match.is_a? String
       raise ArgumentError.new('match expression cannot be empty') if match =~ ''

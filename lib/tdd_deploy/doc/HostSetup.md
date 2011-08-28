@@ -350,7 +350,7 @@ Install using:
         if failed permission 755 then stop
         if failed uid root then stop
         if failed gid root then stop
-        alert mike@clove.com on {
+        alert LOCAL_ADMIN_EMAIL on {
               checksum, permission, uid, gid # , unmonitor
           } with the mail-format { subject: "nginx failure" }
         group server
@@ -381,7 +381,7 @@ Install using:
         if failed permission 755 then stop
         if failed uid root then stop
         if failed gid root then stop
-        alert mike@clove.com on {
+        alert LOCAL_ADMIN_EMAIL on {
               checksum, permission, uid, gid # , unmonitor
           } with the mail-format { subject: "nginx failure" }
         group server
@@ -408,7 +408,7 @@ Install using:
         if failed permission 755 then stop
         if failed uid root then stop
         if failed gid root then stop
-        alert mike@clove.com on {
+        alert LOCAL_ADMIN_EMAIL on {
               checksum, permission, uid, gid # , unmonitor
           } with the mail-format { subject: "/usr/sbin/postfix modified " }
         group server
@@ -420,7 +420,7 @@ Install using:
         if failed permission 755 then stop
         if failed uid root then stop
         if failed gid root then stop
-        alert mike@clove.com on {
+        alert LOCAL_ADMIN_EMAIL on {
               checksum, permission, uid, gid # , unmonitor
           } with the mail-format { subject: "/usr/sbin/postmaster modified " }
         group server

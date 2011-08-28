@@ -3,6 +3,7 @@ $:.unshift File.expand_path('../lib', __FILE__)
 
 require 'uri'
 require 'tdd_deploy'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::Server
@@ -60,6 +61,34 @@ module TddDeploy
         configurator = TddDeploy::Configurator.new
         configurator.make_configuration_files
       end
+      
+      if self.query_hash['install_special']
+        require 'tdd_deploy/installer'
+        installer = TddDeploy::Installer.new
+        [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
+          installer.empty_special_dir self.site_user, host_list
+        end
+        [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
+          installer.install_special_files_on_host_list_as self.site_user, host_list
+        end
+        query_hash['failed-tests'] = true
+      end
+      
+      if self.query_hash['install_configs']
+        require 'tdd_deploy/installer'
+        installer ||= TddDeploy::Installer.new
+        [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
+          installer.install_config_files_on_host_list_as self.site_user, host_list
+        end
+        query_hash['failed-tests'] = true
+      end
+      
+      if self.query_hash['run_cap_deploy']
+        require 'tdd_deploy/installer'
+        installer ||= TddDeploy::Installer.new
+        installer.run_cap_deploy
+        query_hash['failed-tests'] = true
+      end
 
       load_all_tests
       
@@ -83,21 +112,23 @@ module TddDeploy
     # both host_tests and site_tests are clobbered by the rake install task.
     # local_tests is safe.
     def load_all_tests
+      # discard any already defined tests
+      TddDeploy::TestBase.flush_children_methods
+      
+      # reload all tests
       [TddDeploy::Server::HOST_TESTS_DIR, TddDeploy::Server::SITE_TESTS_DIR,
           TddDeploy::Server::LOCAL_TESTS_DIR].each do |dir|
         if File.exists?(dir)
           # puts "gathering tests from #{dir}"
           Dir.new(dir).each do |fname|
-            next if fname[0] == '.'
-
-            load File.join(dir, fname)
+            load File.join(dir, fname) if fname =~ /\.rb$/
           end
         else
           puts "skipping #{dir} - no such directory"
         end
       end
 
-      self.test_classes = TddDeploy::Base.children - [self.class]
+      self.test_classes = TddDeploy::TestBase.children
 
       @test_to_class_map = {}
       self.test_classes.each do |klass|

@@ -18,9 +18,13 @@ task :gem => :html do
   system "(cd ~/Rails/GemCache ; gem generate_index -d . )"
 end
 
-desc "Create Yard Doc"
-task :doc do
+desc "Remove Yard doc directory"
+task :rm_doc do
   FileUtils.rm_r 'doc' if File.exists? 'doc'
+end
+
+desc "Create Yard Doc"
+task :doc => :rm_doc do
   system 'yard'
 end
 
@@ -31,9 +35,11 @@ end
 
 desc "Create html from .md files"
 task :html do
-  Dir.new('.').each do |fname|
+  doc_dir = File.join('lib', 'tdd_deploy', 'doc')
+  Dir.new(doc_dir).each do |fname|
     next unless fname =~ /.md$/
-    fname_html = File.basename(fname, '.md') + '.html'
-    system "redcarpet #{fname} | sed -e 's/VERSION/#{TddDeploy::VERSION}/' > #{fname_html}"
+    file_path = File.join(doc_dir, fname)
+    fname_html = File.join(doc_dir, File.basename(fname, '.md') + '.html')
+    system "redcarpet #{file_path} | sed -e 's/VERSION/#{TddDeploy::VERSION}/' > #{fname_html}"
   end
 end

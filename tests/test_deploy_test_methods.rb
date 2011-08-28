@@ -29,6 +29,13 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
   def teardown
     @tester = nil
   end
+  
+  def test_rationalize_host_list
+    assert_equal ['arch'], @tester.send(:rationalize_host_list, 'arch'), "rationalize_host_list should translate arch to ['arch']"
+    assert_equal ['arch'], @tester.send(:rationalize_host_list, :web_hosts), "rationalize_host_list should translate :web_hosts to ['arch']"
+    assert_equal ['arch'], @tester.send(:rationalize_host_list, [:arch]), "rationalize_host_list should translate [:arch] to ['arch']"
+    assert_equal ['arch'], @tester.send(:rationalize_host_list, ['arch']), "rationalize_host_list should translate ['arch'] to ['arch']"
+  end
 
   def test_default_env
     @tester.reset_env
@@ -48,28 +55,28 @@ class  DeployTestMethodsTestCase < Test::Unit::TestCase
   end
   
   def test_force_failure
-    result = @tester.deploy_test_in_ssh_session_as 'no-user', @tester.hosts.first, '/home/no-user', 'should fail with bad user' do
+    result = @tester.deploy_test_on_a_host_as 'no-user', @tester.hosts.first, '/home/no-user', 'should fail with bad user' do
       'pwd'
     end
     refute result, "refute version: should fail with bad userid #{result}"
   end
 
-  def test_deploy_test_in_ssh_session_as
+  def test_deploy_test_on_a_host_as
     assert_raises ArgumentError do
-      @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, '', 'session catches empty match expression' do
+      @tester.deploy_test_on_a_host_as 'root', @tester.hosts.first, '', 'session catches empty match expression' do
         'uname -a'
       end
       @tester.reset_tests
     end
 
-    tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, 'no-file-exists', 'generate an error' do
+    tmp = @tester.deploy_test_on_a_host_as 'root', @tester.hosts.first, 'no-file-exists', 'generate an error' do
       'ls /usr/no-file-exists'
     end
     # @tester.announce_formatted_test_results
     @tester.reset_tests
     refute tmp, "run as root should fail when accessing a non-existent file"
 
-    tmp = @tester.deploy_test_in_ssh_session_as 'root', @tester.hosts.first, "/root", "should run as root on host #{@tester.hosts.first}" do
+    tmp = @tester.deploy_test_on_a_host_as 'root', @tester.hosts.first, "/root", "should run as root on host #{@tester.hosts.first}" do
       'pwd'
     end
     # @tester.announce_formatted_test_results

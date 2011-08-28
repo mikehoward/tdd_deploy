@@ -11,6 +11,14 @@ code fragments won't necessarily work.
     export SITE_USER=$SITE
     export PASSWORD=<something>
     
+## config/deploy.rb adjustments
+
+After running 'capify', edit 'config/deploy.rb' and add these lines:
+
+    require 'bundle/capistrano'
+    
+    set :bundle_cmd, '~/.rvm/bin/rvm exec bundle'
+    
 ## Test Driven Site Setup
 
 The tests/hosts directory contains a bunch of tests which run commands
@@ -34,7 +42,7 @@ from all hosts - typically from 'monit'. Defaults to 'local\_admin@example.com'
 For site installation testing:
 
 * SITE - name of site. Should satisfy [a-z][_a-z0-9]*  Defaults to 'site'
-* SITE_USER - name of user who owns the site and is the owner of the proxied
+* SITE\_USER - name of user who owns the site and is the owner of the proxied
 web servers [mongrel or thin]. Defaults to 'site'
 * SITE\_BASE_PORT - starting port number for proxied servers. Defaults to 8000
 * SITE\_NUM_SERVERS - number of mongrel/thin's to spin up. Default is 3

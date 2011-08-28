@@ -1,4 +1,4 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::SiteLayout
@@ -15,21 +15,21 @@ module TddDeploy
   # * '~/site/nginx.conf - an nginx configuratino fragment which tells nginx to proxy the site's *thin* servers
   # * ~/site/monitrc - a monit configuration fragment which tells monit how to monitor the site's *thin* servers.
   # * ~/site/one_thin_server - shell script to start a single server instance
-  class SiteLayout < TddDeploy::Base
+  class SiteLayout < TddDeploy::TestBase
     def test_site_subdir
       deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_doc_root}"
     end
 
     def test_releases_subdir
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_doc_root}/../releases"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{self.site_doc_root}/../../../releases"
     end
 
     def test_thin_conf
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_doc_root}/config/thin.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_doc_root}/../config/thin.conf"
     end
 
     def test_one_thin_server_conf
-      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_doc_root}/config/one_thin_server.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.web_hosts, "#{site_doc_root}/../config/one_thin_server.conf"
     end
 
     def test_site_dir_exists

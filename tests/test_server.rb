@@ -3,6 +3,7 @@ $:.unshift File.expand_path('../../lib', __FILE__)
 require 'test/unit'
 require 'tdd_deploy/environ'
 require 'tdd_deploy/server'
+require 'tdd_deploy/test_base'
 
 class TestServerTestCase < Test::Unit::TestCase
   GEM_ROOT = File.expand_path('../..', __FILE__)
@@ -24,8 +25,10 @@ class TestServerTestCase < Test::Unit::TestCase
   end
   
   def teardown
-    @tester = nil
     system('rm -f site_host_setup.env')
+    TddDeploy::TestBase.flush_children_methods
+    @tester.load_all_tests
+    @tester = nil
   end
   
   def test_env_file_detection

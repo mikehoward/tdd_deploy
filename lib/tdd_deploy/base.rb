@@ -36,15 +36,5 @@ module TddDeploy
       self.env_hash || read_env || reset_env
       set_env(args.pop) if args.last.is_a? Hash
     end
-    
-    # gather up all descendents so we know what tests to run
-    class <<self
-      attr_accessor :children
-      
-      def inherited(child)
-        self.children ||= []
-        self.children << child
-      end
-    end
   end
 end

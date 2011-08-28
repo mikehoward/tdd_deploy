@@ -1,11 +1,11 @@
-require 'tdd_deploy/base'
+require 'tdd_deploy/test_base'
 
 module TddDeploy
   # == TddDeploy::RemotePostfix
   #
   # verifies that postfix executable is installed, running and will accept mail to local_admin_mail
   # on all hosts
-  class RemotePostfix < TddDeploy::Base
+  class RemotePostfix < TddDeploy::TestBase
     def test_postfix_installed
       deploy_test_file_exists_on_hosts_as 'root', self.hosts, '/usr/sbin/postfix', "postfix should be installed"
     end
