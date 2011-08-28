@@ -6,7 +6,7 @@ class TestTddDeployInstallerTestCase < Test::Unit::TestCase
   
   def setup
     @helper = TddDeploy::Installer.new
-    @helper.set_env :app_hosts => ['arch']
+    @helper.set_env :site_user => 'site_user', :app_hosts => ['arch']
   end
   
   def test_install_special_files
@@ -16,6 +16,16 @@ class TestTddDeployInstallerTestCase < Test::Unit::TestCase
     assert_nil stderr, "test command should run w/o errors"
   end
   
+  def test_empty_special_dir
+    @helper.run_on_a_host_as @helper.site_user, 'arch', "echo 'this is a string' >#{@helper.site_special_dir}/foo"
+    stdout, stderr, cmd = @helper.run_on_a_host_as @helper.site_user, 'arch', "ls #{@helper.site_special_dir}"
+    assert_match /foo/, stdout, "should be able to create file 'foo'"
+    
+    assert @helper.empty_special_dir(@helper.site_user, :app_hosts), "empty_special_dir should return true"
+    stdout, stderr, cmd = @helper.run_on_a_host_as @helper.site_user, 'arch', "ls #{@helper.site_special_dir}"
+    assert stdout !~ /foo/, "foo file should be gone"
+  end
+
   def test_install_config_files
     assert @helper.install_config_files_on_host_list_as('site_user', 'app_hosts'), 'install config_files should return true'
 

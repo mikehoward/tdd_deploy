@@ -61,6 +61,34 @@ module TddDeploy
         configurator = TddDeploy::Configurator.new
         configurator.make_configuration_files
       end
+      
+      if self.query_hash['install_special']
+        require 'tdd_deploy/installer'
+        installer = TddDeploy::Installer.new
+        [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
+          installer.empty_special_dir self.site_user, host_list
+        end
+        [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
+          installer.install_special_files_on_host_list_as self.site_user, host_list
+        end
+        query_hash['failed-tests'] = true
+      end
+      
+      if self.query_hash['install_configs']
+        require 'tdd_deploy/installer'
+        installer ||= TddDeploy::Installer.new
+        [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
+          installer.install_config_files_on_host_list_as self.site_user, host_list
+        end
+        query_hash['failed-tests'] = true
+      end
+      
+      if self.query_hash['run_cap_deploy']
+        require 'tdd_deploy/installer'
+        installer ||= TddDeploy::Installer.new
+        installer.run_cap_deploy
+        query_hash['failed-tests'] = true
+      end
 
       load_all_tests
       
