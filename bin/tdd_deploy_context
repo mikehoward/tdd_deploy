@@ -51,7 +51,7 @@ class TddDeployEnv
   end
   
   def save
-    if self.modified?
+    if self.modified? || !File.exists?(TddDeploy::Environ::ENV_FNAME)
       self.flash = 'Updates Saved'
       self.save_env
     end
