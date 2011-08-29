@@ -1,7 +1,7 @@
 <% ((site_base_port)...(site_base_port+site_num_servers)).each do |port| %>
 check process <%= site %>_server_<%= port %> with pidfile <%= "#{site_app_root}/tmp/pids/thin.#{port}.pid" %>
   start program = "<%= "#{site_special_dir}/one_thin_server start #{port}" %>" with timeout 60 seconds
-  stop program = "<%= "#{site_special_dir}/one_thin_server stop #{port}" %>"
+  stop program = "kill `cat <%= "#{site_app_root}/pids/thin.#{port}.pid" %>`"
   if failed host localhost port <%= port %> protocol http
      and request "/"
      then restart

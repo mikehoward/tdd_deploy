@@ -13,7 +13,7 @@
 #server {
 #   listen 80;
 #   server_name <%= site_url %>;
-#   root <%= site_doc_root %>/current;
+#   root <%= site_doc_root %>;
 #   location / {
 #     proxy_set_header X-Real-IP $remote_addr;
 #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

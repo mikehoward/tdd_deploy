@@ -31,7 +31,7 @@ module TddDeploy
     
     def run_cap_deploy
       stdout, stderr, cmd = run_locally { 'cap deploy:update' }
-      return fail if stderr =~ /failed|rolling back/
+      return false if stderr =~ /failed|rolling back/
       return true
     end
   end

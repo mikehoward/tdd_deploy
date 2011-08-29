@@ -3,5 +3,10 @@
 
 PORT=$1
 
-cd <%= site_doc_root %>
-bundle exec thin --config ./config/thin_one_server.config --port $PORT start
+cd <%= site_app_root %>
+bundle exec thin \
+  --config ./config/one_thin_server.conf \
+  --environment production \
+  --pid <%= site_app_root %>/tmp/pids/thin.${PORT}.pid \
+  --port $PORT \
+  start
