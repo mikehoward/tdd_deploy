@@ -31,6 +31,7 @@ module TddDeploy
     # * 'local_admin' - user name of on local hosts which can ssh into remote hosts via public key authentication
     # * 'local_admin_email' - email of local admin who should receive monitoring emails
     # * 'site' - name of site This should satisfy /[a-z][a-z0-9_]*.
+    # * 'site_app_root' - the absolute path to DocumentRoot for the site
     # * 'site_doc_root' - the absolute path to DocumentRoot for the site
     # * 'site_special_dir' - absolute path to site special directory - for system configuration fragments, commands, etc
     # * 'site_url' - the url for the site (w/o scheme - as in 'www.foo.com')
@@ -113,6 +114,7 @@ module TddDeploy
       'site' => :string,
       'site_url' => :string,
       'site_aliases' => :string,
+      'site_app_root' => :string,
       'site_doc_root' => :string,
       'site_special_dir' => :string,
       'site_user' => :string,
@@ -142,7 +144,8 @@ module TddDeploy
       'site' => 'name of site - will be the name of the deployment directory - as in /home/user/site/',
       'site_url' => 'the site url - www.foo.com',
       'site_aliases' => 'all the site aliases we need to put in nginx/apache configuration fragments',
-      'site_doc_root' => 'this is DocumentRoot for the site. probably /home/site_user/site/current',
+      'site_app_root' => 'this is the root of the current app. probably /home/site_user/site/current',
+      'site_doc_root' => 'this is DocumentRoot for the site. probably /home/site_user/site/current/public',
       'site_special_dir' => 'directory for monitrc, nginx config fragments, monit commands, etc',
       'site_user' => 'userid that the app lives in. This need not be host_admin. It\' separate so multiple sites can live on the same host',
 
@@ -171,7 +174,8 @@ module TddDeploy
       'site' => "site",
       'site_url' => 'www.site.com',                    # don't include the scheme
       'site_aliases' => '',
-      'site_doc_root' => '/home/site_user/site/current',   # default for Capistrano
+      'site_app_root' => '/home/site_user/site/current',
+      'site_doc_root' => '/home/site_user/site/current/public',   # default for Capistrano
       'site_special_dir' => '/home/site_user/site_special',
       'site_user' => "site_user",
 

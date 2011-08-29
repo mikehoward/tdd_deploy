@@ -23,10 +23,12 @@ class RunMethodsTestCase < Test::Unit::TestCase
   end
   
   def test_mkdir_on_remote_as
-    result = mkdir_on_remote_as 'site_user', 'arch', 'test-dir'
+    result = mkdir_on_remote_as 'site_user', 'arch', 'test-dir', :permissions => 0555
     assert result, "mkdir_on_remote_as site_user on arch returns true"
     stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'test -d test-dir && echo "success"'
     assert_equal "success\n", stdout, "deploy_test_file_exists_on_hosts_as says 'test-dir' exists"
+    stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'ls -ld test-dir'
+    assert_match /^dr-xr-xr-x/, stdout, "deploy_test_file_exists_on_hosts_as says 'test-dir' exists"
     
     stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'rmdir test-dir ; test -d test-dir || echo "success"'
     assert_equal "success\n", stdout, "deploy_test_file_exists_on_hosts_as says 'test-dir' removed"
@@ -64,6 +66,7 @@ class RunMethodsTestCase < Test::Unit::TestCase
     require 'tempfile'
     tmp_file = Tempfile.new('foo')
     begin
+      tmp_file_perms = tmp_file.stat.mode
       input_text = "line one\nline two\nline 3\n"
       tmp_file.write input_text
       tmp_file.close
@@ -71,6 +74,8 @@ class RunMethodsTestCase < Test::Unit::TestCase
     
       stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'cat test-file'
       assert_equal input_text, stdout, "remote file should contain input_text"
+      stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'ls -ld test-file'
+      assert_match /^-rw-------/, stdout, "test-file should have correct permissions"
 
       assert result, "copy should return true"
     ensure
@@ -97,6 +102,9 @@ class RunMethodsTestCase < Test::Unit::TestCase
       assert append_file_to_remote_file_as('site_user', 'arch', tmp2_file.path, 'test-file'), 'append should return true'
       stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'cat test-file'
       assert_equal input_text + input2_text, stdout, "remote file should contain input_text + input2_text"
+
+      stdout, stderr, cmd = run_on_a_host_as 'site_user', 'arch', 'ls -ld test-file'
+      assert_match /^-rw-------/, stdout, "test-file should have correct permissions"
     ensure
       tmp_file.unlink
       tmp2_file.unlink

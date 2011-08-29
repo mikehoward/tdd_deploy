@@ -74,6 +74,7 @@ module TddDeploy
 
     #single host methods
     
+    # options are passed to Net::SFTP process. :permissions default to 0755
     def mkdir_on_remote_as userid, host, dir, options = {}
       result = nil
       options[:permissions] = 0755 unless options.include? :permissions
@@ -96,7 +97,7 @@ module TddDeploy
           sftp.close! handle
         end
       end
-      result
+      ! result.nil?
     end
 
     def copy_string_to_remote_file_as userid, host, str, dst
@@ -106,21 +107,35 @@ module TddDeploy
           f.write str
         end
       end
-      result
+      ! result.nil?
     end
 
     def append_file_to_remote_file_as(userid, host, src, dst)
       raise ::ArgumentError.new("file name cannot be empty") if src.empty?
       raise ::RuntimeError.new("unable to copy #{src} to #{userid}@#{host}: #{src} not found") unless File.exists? src
+
+      f = File.new(src)
+      file_mode = f.stat.mode & 0777
       
-      append_string_to_remote_file_as userid, host, File.new(src).read, dst
+      if (result = append_string_to_remote_file_as(userid, host, f.read, dst))
+        stdout, stderr, cmd = run_on_a_host_as(userid, host, "chmod 0#{sprintf('%o', file_mode)} #{dst}")
+        result &= stderr.nil?
+      end
+      result
     end
 
     def copy_file_to_remote_as(userid, host, src, dst)
       raise ::ArgumentError.new("file name cannot be empty") if src.empty?
       raise ::RuntimeError.new("unable to copy #{src} to #{userid}@#{host}: #{src} not found") unless File.exists? src
       
-      copy_string_to_remote_file_as userid, host, File.new(src).read, dst
+      f = File.new(src)
+      file_mode = f.stat.mode & 0777
+
+      if (result = copy_string_to_remote_file_as(userid, host, f.read, dst))
+        stdout, stderr, cmd = run_on_a_host_as(userid, host, "chmod 0#{sprintf('%o', file_mode)} #{dst}")
+        result &= stderr.nil?
+      end
+      result
     end
   end
 end

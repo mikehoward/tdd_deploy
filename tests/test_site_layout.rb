@@ -20,12 +20,16 @@ class TestSiteLayoutTestCase < Test::Unit::TestCase
     @tester = nil
   end
 
-  def test_site_home
-    assert @tester.test_site_subdir, "Directory #{@tester.site_doc_root} should exist"
+  def test_site_app_root
+    assert @tester.test_site_app_root, "Directory #{@tester.site_app_root} should exist"
+  end
+
+  def test_site_doc_root
+    assert @tester.test_site_doc_root, "Directory #{@tester.site_doc_root} should exist"
   end
   
   def test_site_releases
-    assert @tester.test_releases_subdir, "Directory #{@tester.site_doc_root}/../../releases should exist"
+    assert @tester.test_releases_subdir, "Directory #{@tester.site_app_root}/../releases should exist"
   end
   
   def test_site_configuration_dir_exists

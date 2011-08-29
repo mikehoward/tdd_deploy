@@ -9,14 +9,19 @@ module TddDeploy
   class RemoteIpTables < TddDeploy::TestBase
     # tcp_some_blocked_ports - checks TCP ports
     def tcp_some_blocked_ports
+      @port_to_check ||= [20, 23, 25, 53, 5432, 2812]
       self.hosts.each do |host|
+        result = true
         # Linode seems to refuse to block 21 - FTP control
         #  [20, 21, 23, 25, 53, 5432, 2812].each do |port|
         if self.ping_host(host)
-          [20, 23, 25, 53, 5432, 2812].each do |port|
+          @port_to_check.each do |port|
             tcp_socket = TCPSocket.new(host, port) rescue 'failed'
-            assert_equal host, 'failed', tcp_socket, "Host: #{host}: Should not be able to connect via tcp to port #{port}"
+            unless tcp_socket == 'failed'
+              result &= fail host, "Host: #{host}: iptables test: Should not be able to connect via tcp to port #{port}"
+            end
           end
+          pass host, "tcp ports #{@port_to_check.join(',')} blocked"
         else
           fail host, "Host: #{host}: iptables cannot be tested - host does not respond to ping"
         end

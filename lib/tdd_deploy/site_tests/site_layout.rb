@@ -8,6 +8,7 @@ module TddDeploy
   #
   # The sub directories tested for are:
   #
+  # * 'site_app_root' - application root (current installed version)
   # * 'site_doc_root' - DocumentRoot
   # * 'site_doc_root'/../releases - a standard directory used by Capistrano
   # * 'site_doc_root'/config/thin.conf - config file for 'thin' server
@@ -16,12 +17,16 @@ module TddDeploy
   # * ~/site/monitrc - a monit configuration fragment which tells monit how to monitor the site's *thin* servers.
   # * ~/site/one_thin_server - shell script to start a single server instance
   class SiteLayout < TddDeploy::TestBase
-    def test_site_subdir
+    def test_site_app_root
+      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{self.site_app_root}"
+    end
+
+    def test_site_doc_root
       deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{self.site_doc_root}"
     end
 
     def test_releases_subdir
-      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{self.site_doc_root}/../../../releases"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{self.site_app_root}/../../releases"
     end
     
     def test_special_dir
@@ -29,11 +34,11 @@ module TddDeploy
     end
 
     def test_thin_conf
-      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{site_doc_root}/../config/thin.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{site_app_root}/config/thin.conf"
     end
 
     def test_one_thin_server_conf
-      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{site_doc_root}/../config/one_thin_server.conf"
+      deploy_test_file_exists_on_hosts_as self.site_user, self.app_hosts, "#{site_app_root}/config/one_thin_server.conf"
     end
 
     def test_site_dir_exists
