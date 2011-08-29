@@ -29,6 +29,7 @@ module TddDeploy
     end
 
     def deploy_test_file_exists_on_hosts_as(userid, host_list, path, success_msg = nil)
+      host_list = rationalize_host_list(host_list)
       deploy_test_on_hosts_as(userid, host_list, /^\s*success\s*$/, success_msg || "path #{path} should exist") do
         "test -s #{path} && echo success || echo fail"
       end

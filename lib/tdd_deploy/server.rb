@@ -71,7 +71,7 @@ module TddDeploy
         [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
           installer.install_special_files_on_host_list_as self.site_user, host_list
         end
-        query_hash['failed-tests'] = true
+        query_hash['failed-tests'] = failed_tests.join(',')
       end
       
       if self.query_hash['install_configs']
@@ -80,7 +80,7 @@ module TddDeploy
         [:app_hosts, :balance_hosts, :db_hosts, :web_hosts].each do |host_list|
           installer.install_config_files_on_host_list_as self.site_user, host_list
         end
-        query_hash['failed-tests'] = true
+        query_hash['failed-tests'] = failed_tests.join(',')
       end
       
       if self.query_hash['run_cap_deploy']
