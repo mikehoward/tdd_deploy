@@ -10,7 +10,7 @@ class TestServerTestCase < Test::Unit::TestCase
   BIN_DIR = File.join(GEM_ROOT, 'bin')
 
   include TddDeploy::Environ
-  
+
   def setup
     # we can't create a server w/o an environment, but we flush it between tests.
     # so we have to create the enviornment file here
@@ -20,14 +20,20 @@ class TestServerTestCase < Test::Unit::TestCase
     @tester = TddDeploy::Server.new
     @tester.set_env(:web_hosts => 'arch', :db_hosts => 'arch', 
       :host_admin => 'mike', :local_admin => 'mike', :ssh_timeout => 2,
-      :site => 'site', :site_user => 'site_user')
+      :site => 'site', :site_user => 'site_user', :site_special_dir => 'non-special-special-dir')
     @tester.save_env
+    @tester.run_on_a_host_as 'site_user', 'arch', "mkdir #{@tester.site_special_dir}"
+    ['monitrc', 'one_thin_server', 'nginx.conf'].each do |fname|
+      @tester.run_on_a_host_as 'site_user', 'arch', "echo '# #{fname}' >#{@tester.site_special_dir}/#{fname}"
+    end
   end
   
   def teardown
     system('rm -f site_host_setup.env')
     TddDeploy::TestBase.flush_children_methods
     @tester.load_all_tests
+    @tester.run_on_a_host_as 'site_user', 'arch', "rm #{@tester.site_special_dir}/*"
+    @tester.run_on_a_host_as 'site_user', 'arch', "rmdir #{@tester.site_special_dir}"
     @tester = nil
   end
   

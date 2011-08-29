@@ -393,7 +393,8 @@ module TddDeploy
       self.capfile.migration_host_list
     end
     
-    # takes the name of a list (as a string or symbol), a single string, or an array of host names
+    # takes the name of a list (as a string or symbol), a single string, or an array of host names.
+    # If it's an array, then returns uniq-ified array of strings [to handle the uniion of lists]
     def rationalize_host_list(host_list_or_list_name)
       if host_list_or_list_name.is_a? String
         return self.respond_to?(host_list_or_list_name.to_sym) ? self.send(host_list_or_list_name.to_sym) :
@@ -402,7 +403,7 @@ module TddDeploy
         return self.respond_to?(host_list_or_list_name) ? self.send(host_list_or_list_name) :
               [host_list_or_list_name.to_s]
       elsif host_list_or_list_name.is_a? Array
-        return host_list_or_list_name.map { |host| host.to_s }
+        return host_list_or_list_name.map { |host| host.to_s }.uniq
       else
         raise ArgumentError.new("rationalize_host_list(#{host_list_or_list_name.inspect}) is invalid")
       end

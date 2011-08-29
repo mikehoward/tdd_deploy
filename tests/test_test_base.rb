@@ -5,7 +5,7 @@ require 'test_helpers'
 require 'tdd_deploy/test_base'
 require 'tdd_deploy/server'
 
-class TestBaseTestCase < Test::Unit::TestCase
+class TestTestBaseCase < Test::Unit::TestCase
   def setup
     TddDeploy::Server.new.load_all_tests
   end

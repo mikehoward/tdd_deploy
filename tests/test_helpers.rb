@@ -8,3 +8,6 @@ require 'bundler/setup'
 require 'test/unit'
 require 'net/ssh'
 require 'capistrano'
+
+# make sure there is an env file
+system 'touch site_host_setup.env'
