@@ -1,11 +1,1 @@
-<% ((site_base_port)...(site_base_port+site_num_servers)).each do |port| %>
-check process <%= site %>_server_<%= port %> with pidfile <%= "#{site_doc_root}/tmp/pids/thin.#{port}.pid" %>
-  start process = "<%= "#{site_doc_root}/site/thin_one_server start #{port}" %>" with timeout 60 seconds
-  stop process = "<%= "#{site_doc_root}/site/thin_one_server stop #{port}" %>"
-  if failed host localhost port <%= port %> protocol http
-     and request "/"
-     then restart
-  if 3 restarts within 5 cycles then timeout
-  group server
-  
-<% end %>
+# Empty monitrc fragment

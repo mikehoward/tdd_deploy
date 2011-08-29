@@ -60,13 +60,13 @@ class TddDeployEnv
 
   def parse_cmd(cmd)
     puts cmd
-    unless cmd =~ /^\s*(\w+)(\s+.*?)\s*$/i
+    unless cmd =~ /^\s*(\w+)(\s+.*?)?\s*$/i
       self.flash = "unable to parse command: '#{cmd}'" unless cmd.strip.empty?
       return
     end
     
     key_prefix = $1
-    param_value = $2.strip
+    param_value = $2.nil? ? '' : $2.strip
 
     key_regx = Regexp.new('^' + key_prefix, Regexp::IGNORECASE)
     matching_keys = self.env_types.keys.select { |k| key_regx.match(k) }

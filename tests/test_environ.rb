@@ -94,9 +94,10 @@ class TestEnvironTestCase < Test::Unit::TestCase
     assert_equal [], @foo.app_hosts, "assigning '' to app_hosts should create empty list"
     @foo.set_env :hosts => 'foo,bar'
     assert_equal ['bar', 'foo'], @foo.hosts, "assigning foo,bar to hosts should create ['bar', 'foo']"
-    ['app_hosts', 'web_hosts', 'db_hosts', 'balance_hosts'].each do |hst|
+    ['app_hosts', 'web_hosts', 'db_hosts'].each do |hst|
       assert_equal @foo.send(hst.to_sym), @foo.hosts, "hosts should be same as @foo.#{hst}"
     end
+    assert_equal [], @foo.balance_hosts, "balance_hosts should still be empty"
   end
   
   def test_env_hash

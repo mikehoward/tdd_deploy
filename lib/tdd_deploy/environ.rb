@@ -49,7 +49,7 @@ module TddDeploy
     # * 'capfile_paths' - relative paths to capistrano recipe files. Defaults to './config/deploy.rb'
     #
     # === Pseudo Variables
-    # * 'hosts' - list of all hosts - always returns balance_hosts + db_hosts + web_hosts.
+    # * 'hosts' - list of all hosts - always returns app_hosts + balance_hosts + db_hosts + web_hosts.
     #may be assigned to if all three host lists are identical, otherwise raises an exception.
     #'tdd_deploy_context' hides it from view unless it can be assigned
     # * 'app' - list of all hosts in the :app role of the Capistrano recipes
@@ -183,7 +183,7 @@ module TddDeploy
 
       # 'hosts' => "bar,foo",
       'app_hosts' => 'arch',
-      'balance_hosts' => 'arch',
+      'balance_hosts' => '',
       'db_hosts' => 'arch',
       'web_hosts' => 'arch',
     }
@@ -215,12 +215,12 @@ module TddDeploy
         when :pseudo then
           if k == 'hosts'
             if (tmp = DataCache.env_hash['web_hosts']) == DataCache.env_hash['db_hosts'] \
-                &&  tmp == DataCache.env_hash['balance_hosts'] \
+                &&  [] == DataCache.env_hash['balance_hosts'] \
                 &&  tmp == DataCache.env_hash['app_hosts']
               DataCache.env_hash['web_hosts'] =
                 DataCache.env_hash['db_hosts'] =
-                  DataCache.env_hash['balance_hosts'] =
-                    DataCache.env_hash['app_hosts'] = self.str_to_list(v)
+                  DataCache.env_hash['app_hosts'] = self.str_to_list(v)
+              DataCache.env_hash['balance_hosts'] = []
             else
               raise ::RuntimeError.new("#{self}#reset_env(): Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{DataCache.env_hash['web_hosts']}\n db_hosts: #{DataCache.env_hash['db_hosts']}")
               # raise RuntimeError.new("Cannot change hosts key if web_hosts != db_hosts")
@@ -386,8 +386,8 @@ module TddDeploy
       if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
         self.web_hosts =
           self.db_hosts =
-            self.balance_hosts =
-              self.app_hosts = self.str_to_list(list)
+            self.app_hosts = self.str_to_list(list)
+        self.balance_hosts = []
       else
         raise ::RuntimeError.new("Cannot assign value to 'hosts' if web_hosts &/or db_hosts already set.\n web_hosts: #{self.web_hosts}\n db_hosts: #{self.db_hosts}")
       end
