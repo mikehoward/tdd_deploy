@@ -22,7 +22,7 @@ module TddDeploy
     def deploy_test_process_running_on_hosts_as(userid, host_list, pid_file_path, success_msg = nil)
       host_list = rationalize_host_list(host_list)
       success_msg ||= "Process associated with #{pid_file_path} should be running"
-      ret = deploy_test_file_exists_on_hosts_as(userid, host_list, pid_file_path, success_msg + " no such pid file: #{pid_file_path}") ||
+      ret = deploy_test_file_exists_on_hosts_as(userid, host_list, pid_file_path, success_msg + " based on pid file: #{pid_file_path}") ||
       ret &= deploy_test_on_hosts_as(userid, host_list, /.+\n\s*\d+.*?\d\d:\d\d:\d\d/, "Process for #{pid_file_path} is running") do
         "ps -p `cat #{pid_file_path} | awk '{ print $1 ; exit }'`"
       end
