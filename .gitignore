@@ -1,6 +1,6 @@
 cfg-out/
-config/
-site/
+./config/
+./site/
 *~
 doc/
 !lib/tdd_deploy/doc/

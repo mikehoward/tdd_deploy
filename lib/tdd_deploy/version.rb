@@ -1,3 +1,3 @@
 module TddDeploy
-  VERSION = '0.1.10.pre2'
+  VERSION = '0.1.10.pre3'
 end
