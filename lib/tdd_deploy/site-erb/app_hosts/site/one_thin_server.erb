@@ -1,12 +1,30 @@
 #! /bin/sh
 # must have perms 0755
 
-PORT=$1
+USAGE="Usage: `basename $0` <stop | start> <port>"
+
+source "$HOME/.rvm/scripts/rvm"
+
+case $# in
+  2) CMD=$1 ; PORT=$2 ;;
+  *) echo $USEAGE ; exit 1;;
+esac
 
 cd <%= site_app_root %>
-bundle exec thin \
-  --config ./config/one_thin_server.conf \
-  --environment production \
-  --pid <%= site_app_root %>/tmp/pids/thin.${PORT}.pid \
-  --port $PORT \
-  start
+case $CMD in
+  start)
+    bundle exec thin \
+      --config <%= site_app_root %>/config/one_thin_server.conf \
+      --environment production \
+      --log <%= site_app_root %>/log/thin.${PORT}.log
+      --pid <%= site_app_root %>/tmp/pids/thin.${PORT}.pid \
+      --port $PORT \
+      start
+      ;;
+  stop)
+      test -s ./tmp/pids/thin.${PORT}.pid && /bin/kill `cat ./tmp/pids/thin.${PORT}.pid`
+      ;;
+  *)
+    echo $USAGE ; exit 1
+    ;;
+esac
