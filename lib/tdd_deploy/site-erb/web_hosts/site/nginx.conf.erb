@@ -1,32 +1,44 @@
 #
 # web_host config fragment for <%= site %>
 #
-host {
-  
-}
 upstream <%= site %> {
+  # backend servers
 <% ((site_base_port)...(site_base_port+site_num_servers)).each do |port| %>
   server 127.0.0.1:<%= port %>;
 <% end %>
 }
 server {
    listen 80;
-   server_name <%= site_url %>;
+   server_name <%= site_url %> <%= site_aliases %>;
+
    root <%= site_doc_root %>;
+
+   access_log <%= site_app_root %>/log/<%= site %>.access.log;
+   error_log  <%= site_app_root %>/log/<%= site %>.error.log debug;
+#   access_log /etc/nginx/logs/<%= site %>.access.log;
+#   error_log  /etc/nginx/logs/<%= site %>.error.log debug;
+
    location / {
-     proxy_set_header X-Real-IP $remote_addr;
-     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-     proxy_set_header Host $http_host;
-     proxy_redirect false;
-     try_files $uri $uri/index.html $uri.html @thin;
-     location / {
-       include proxy.conf;
-       proxy_pass http://<%= site %>;
-     }
+     # proxy configuration - customarily offloaded to an include file
+     proxy_redirect		off;
+     proxy_set_header	Host	$host;
+     proxy_set_header	X-Real-IP	$remote_addr;
+     proxy_set_header	X-Forwarded-For	$proxy_add_x_forwarded_for;
+
+     try_files $uri $uri/index.html $uri.html @thin-<%= site %>;
    }
 
-   error_page 500 502 503 504 /500.html;
-   location = /500.html {
-     root html;
+   location @thin-<%= site %> {
+     # proxy configuration - customarily offloaded to an include file
+     client_max_body_size	10m;
+     client_body_buffer_size	128k;
+     proxy_connect_timeout	90;
+     proxy_send_timeout	90;
+     proxy_read_timeout	90;
+     proxy_buffers		32 4k;
+     
+     proxy_pass http://<%= site %>;
    }
+   
+   error_page  500 502 503 504 /500.html;
 }
