@@ -283,7 +283,7 @@ users, in case we need to do different things.
         }
 
         # THIS LINE ADDS SITE CONFIGURATION FILES within the 'http' block
-        include /home/**/nginx.conf;
+        include /home/*/site/nginx.conf;
     }
 
 ## configure postfix

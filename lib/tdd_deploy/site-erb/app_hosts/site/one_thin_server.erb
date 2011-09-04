@@ -1,7 +1,7 @@
 #! /bin/sh
 # must have perms 0755
 
-USAGE="Usage: `basename $0` <stop | start> <port>"
+USEAGE="Usage: `basename $0` <stop | start> <port>"
 
 source "$HOME/.rvm/scripts/rvm"
 
@@ -16,7 +16,7 @@ case $CMD in
     bundle exec thin \
       --config <%= site_app_root %>/config/one_thin_server.conf \
       --environment production \
-      --log <%= site_app_root %>/log/thin.${PORT}.log
+      --log <%= site_app_root %>/log/thin.${PORT}.log \
       --pid <%= site_app_root %>/tmp/pids/thin.${PORT}.pid \
       --port $PORT \
       start
