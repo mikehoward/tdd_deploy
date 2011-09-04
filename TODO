@@ -1,0 +1,6 @@
+TODO add code to detect when Configurator is run
+TODO break out append_methods into separate module & split out tests
+TODO modify configurator to flush config files on hosts
+TODO modify display to make installation buttons Red or something when configurator has run
+TODO figure out why the number of tests isn't stable
+TODO look at sinatra integration
