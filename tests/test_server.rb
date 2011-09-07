@@ -66,6 +66,10 @@ class TestServerTestCase < Test::Unit::TestCase
     assert @tester.send(:run_selected_tests, ['return_true', 'smoke']), 'run_selected_tests can run two tests'
   end
   
+  def test_capistrano_attributes
+    assert_equal ['app1', 'app2', 'app3'], @tester.app, "Capistrano app should be an array of three hosts"
+  end
+  
   def test_parse_query_string
     qs = @tester.send :parse_query_string, "foo=bar&bar=some%20stuff"
     assert_equal 2, qs.length, "query string should have to entries"
