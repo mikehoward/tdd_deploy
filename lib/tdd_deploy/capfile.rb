@@ -35,6 +35,10 @@ module TddDeploy
     # for rails apps. May be called multiple times
     def load_recipes(path = './config/deploy.rb')
       @capfile_config.load path
+    rescue LoadError => e
+      msg = "Unable to load capistrano config file: #{path} - #{e}"
+      raise LoadError.new msg
     end
+
   end
 end
