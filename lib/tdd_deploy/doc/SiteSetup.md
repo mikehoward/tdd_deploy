@@ -15,10 +15,18 @@ code fragments won't necessarily work.
 
 After running 'capify', edit 'config/deploy.rb' and add these lines:
 
-    require 'bundle/capistrano'
+    require 'bundler/capistrano'
     
     set :bundle_cmd, '~/.rvm/bin/rvm exec bundle'
-    
+    set :user, SITE_USER  # this tells Capistrano who to ssh in as
+    set :use_sudo, false  # this will let Capistrano run as your user w/o attempting to use sudo.
+    set :scm, :git   # you are using github.com?
+    set :repository, "git@github.com:...."  # the github readonly path to our repository
+    set :deploy_to, '...'  # set this to the **parent** directory of the path you use for site_app_root.
+    # If you have /home/foo/foobar/current as site_app_root, then set :deploy_to to '/home/foo/foobar'
+
+See [below](#capistrano_ness) for more details.
+
 ## Test Driven Site Setup
 
 The tests/hosts directory contains a bunch of tests which run commands
@@ -69,7 +77,7 @@ when you get done you should see:
 
 ## Create Postgresql User
 
-    echo 'create user $SITE_USER createdb;' | psql postgres postgres
+    echo "create user $SITE_USER createdb;" | psql postgres postgres
 
     echo "create database $DATABASE with owner $SITE_USER encoding 'utf-8' template template0 ;" | \
         psql postgres postgres
@@ -85,13 +93,26 @@ when you get done you should see:
 
 ### install rvm
 
+    do an `ls -a` and make sure you have a `.bash_profile` and `.bashrc` file.
+
     bash < <(curl -s https://rvm.beginrescueend.com/install/rvm)
+
+    follow the instructions and append the `[[ ....]] && ... ` to your `.bashrc` file
     
-    Note: if rvm fails on 'cannot create /usr/local/bin/rvm', check to see if /etc/rvmrc
-    exists. If it does, it will be sourced by bash and will attempt a global install.
+    log out as site user
+    
+    log back in as SITE_USER and type `rvm`. You see a bunch of stuff. You see something
+    like `rvm not found`, then you have a problem you need to fix. So fix it.
+    
+#### rvm installation problems
+
+if rvm fails on 'cannot create /usr/local/bin/rvm', check to see if /etc/rvmrc
+exists. If it does, it will be sourced by bash and will attempt a global install.
+
+
 
 ### install ruby 1.9.2
-ge
+
     rvm install 1.9.2
     (wait)
     rvm use 1.9.2 --default
@@ -133,7 +154,8 @@ Several things need to be set up in the Capistrano deployment file (config/deplo
 
 Add **require 'bundler/capistrano'** at the top of the file.
 
-* set :user\_sudo, false  # this will let Capistrano run as your user w/o attempting to use sudo.
+* set :user, $SITE\_USER  # this tells Capistrano who to ssh in as
+* set :use\_sudo, false  # this will let Capistrano run as your user w/o attempting to use sudo.
 * set :bundle\_cmd, '~/.rvm/bin/rvm exec bundle'  # this runs the bundler using your local rvm'ed ruby
 * set :scm, :git   # you are using github.com?
 * set :repository, "git@github.com:...."  # the github readonly path to our repository
@@ -160,12 +182,15 @@ You're going to deploying from a private repo on github.com, so read up on Deplo
 * Go to your repo, then click Admin -> Deploy Keys and add two keys: one for your host and one
 for the site account.
 
-Your host key will be in /etc/ssh/ssh\_host\_rsa\_key.pub. Cat it and copy-and-paste into the
-Key textarea. (Make sure you don't copy-and-paste one of the private ones).
-
 Your user may not have a key yet, so log on as your site user and run **ssh-keygen**. This creates
 two keys in ~/.ssh/. Copy-and-paste the public one into a separate deployment key for your site
 user.
+
+SITE_USER will pull down your site from the github.com repository using ssh - which will fail
+the first time because SITE_USER's .ssh/knownhosts doesn't know about github. You fix that
+by attempting `ssh github.com` and answering 'Yes' when ssh asks you whether to trust
+the host or not. Then your login will fail, but github.com is now a known host, so deployment
+will work.
 
 ### Start kicking the Capistrano tires
 
@@ -182,6 +207,23 @@ If anything isn't set up right - deployment keys or bundler executable or Gemfil
 and roll everything back.
 * run the Configurator and install Site Specials and Site Config using **tdd\_deploy**. Once
 Capistrano has the directories set up, you can install the nginx.conf, monitrc, etc files.
+
+## Future Deployments
+
+You will deploy using `cap deploy`.
+
+**NOTE:** if you don't copy the stuff in lib/tdd\_deploy/app\_hosts/config to the `config` directory
+and include them in you git repository, you will need to _reinstall_ them every time
+you do a deployment. But then, if you do and you change something, you'll need to - well, figure
+it out.
+
+## After First Deployment
+
+You may need to run rake db:migrate by hand:
+
+    cd ~${SITE_USER}/${SITE}/current
+    
+    bundle exec rake RAILS_ENV=production db:migrate
 
 ## Things which can go wrong
 
