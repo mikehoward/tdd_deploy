@@ -1,4 +1,4 @@
-# TddDeploy - 0.1.10
+# TddDeploy - 0.1.11
 
 **This is a prototype. It works, but isn't pretty and polished.**
 
@@ -47,3 +47,11 @@ but there are no guarantees.
 
 These tests run on my system with a virtual host running Arch Linux with host name 'arch'
 and a bunch of accounts. The tests won't work without a conforming setup.
+
+# Known Bugs
+
+* running only failed tests sometimes miscounts and reports tests as duplicated. Running
+all tests fixes this (eventually)
+* server spits out lots of useless error messages. This will probably be fixed when we convert
+to using Sinatra
+

@@ -219,72 +219,72 @@ if not, then
 
 Use this as /etc/nginx/conf/nginx.conf (edit as appropriate)
 
-NOTE: the 'include /home/*/site/*;' line pulls in all the sites
+NOTE: the 'include /home/*/site/nginx.conf;' line pulls in all the sites
 defined in all user directories. The idea is to have one user for
 each site so that Capistrano can use distinct Cap files with distinct
 users, in case we need to do different things.
 
-    user http;
-    worker_processes  6;
-    #worker_processes  1;
+      user http;
+      worker_processes  6;
+      #worker_processes  1;
 
-    #error_log  logs/error.log;
-    #error_log  logs/error.log  notice;
-    #error_log  logs/error.log  info;
+      #error_log  logs/error.log;
+      #error_log  logs/error.log  notice;
+      #error_log  logs/error.log  info;
 
-    #pid        logs/nginx.pid;
-
-
-    events {
-        worker_connections  1024;
-    }
+      #pid        logs/nginx.pid;
 
 
-    http {
-        include       mime.types;
-        default_type  application/octet-stream;
+      events {
+          worker_connections  1024;
+      }
 
-        #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-        #                  '$status $body_bytes_sent "$http_referer" '
-        #                  '"$http_user_agent" "$http_x_forwarded_for"';
 
-        #access_log  logs/access.log  main;
+      http {
+          include       mime.types;
+          default_type  application/octet-stream;
 
-        sendfile        on;
-        #tcp_nopush     on;
+          #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+          #                  '$status $body_bytes_sent "$http_referer" '
+          #                  '"$http_user_agent" "$http_x_forwarded_for"';
 
-        #keepalive_timeout  0;
-        keepalive_timeout  65;
+          #access_log  logs/access.log  main;
 
-        #gzip  on;
+          sendfile        on;
+          #tcp_nopush     on;
 
-        server {
-            listen       80;
-            server_name  localhost;
+          #keepalive_timeout  0;
+          keepalive_timeout  65;
 
-            #charset koi8-r;
+          #gzip  on;
 
-            #access_log  logs/host.access.log  main;
+          server {
+              listen       80;
+              server_name  localhost;
 
-            location / {
-                root   html;
-                index  index.html index.htm;
-            }
+              #charset koi8-r;
 
-            #error_page  404              /404.html;
+              #access_log  logs/host.access.log  main;
 
-            # redirect server error pages to the static page /50x.html
-            #
-            error_page   500 502 503 504  /50x.html;
-            location = /50x.html {
-                root   html;
-            }
+              location / {
+                  root   html;
+                  index  index.html index.htm;
+              }
 
-        }
+              #error_page  404              /404.html;
 
-        # THIS LINE ADDS SITE CONFIGURATION FILES within the 'http' block
-        include /home/*/site/nginx.conf;
-    }
+              # redirect server error pages to the static page /50x.html
+              #
+              error_page   500 502 503 504  /50x.html;
+              location = /50x.html {
+                  root   html;
+              }
+
+          }
+
+          # THIS LINE ADDS SITE CONFIGURATION FILES
+          include /home/*/site/nginx.conf;
+      }
 
 ## configure postfix
 
@@ -303,146 +303,158 @@ Install using:
 
     add monit group:
 
-      groupadd monit
+    groupadd monit
 
     edit /etc/rc.conf daemon line to add 'monitd' to startup
     
     mkdir /var/monit/ /var/monit/eventq
     
-    Edit /etc/monitrc:
+Copy, edit and run this script to create a monitrc file. It creates a file file named `monitrc-new`
+in your local directory. Look it over and copy it into /etc/monitrc, owned by root, group root,
+and perms 0400.
 
-    NOTE: change all Checksums and HOST names to the correct ones for the system.
-    
+Check over the output and modify the script as needed.
+ 
+    ------------------------start here--------------------------
+      #! /bin/bash
+      
+      HOST=real-host-name
+      HOST_ADMIN_EMAIL=user-who-should-get-monit-alerts
+      MONIT_ADMIN=monit-admin-userid
+      SECRET_PASSWORD=password-which-must-be-given-to-access-monit-http-server-output
+      
+      cat <<-EOF >monitrc-new
       set daemon 300 # check services at 5 minute intervals
-          with start delay 240  # wait for services to start before starting to monitor
+        with start delay 240  # wait for services to start before starting to monitor
       set logfile syslog facility log_daemon
       set idfile    /var/monit/.monit.id
       set statefile /var/monit/.monit.state
       set mailserver localhost
-      set mail-format { from: root@$HOST }  # FIXME!!!!! replace $HOST with real host name (above)
-      set alert $ADMIN_EMAIL                         # receive all alerts
+      set mail-format { from: root@${HOST} }
+      set alert ${HOST_ADMIN_EMAIL} # receive all alerts
 
       set eventqueue
-        basedir /var/monit/eventq  # set the base directory where events will be stored
-        slots 100           # optionally limit the queue size
+      basedir /var/monit/eventq  # set the base directory where events will be stored
+      slots 100           # optionally limit the queue size
 
-
+      # this sets up monit's http server to run on local host. I run a tunnel through an ssh
+      #  session to access it
       set httpd port 2812 and
-        use address localhost  # only accept connection from localhost
-	allow localhost        # allow localhost to connect to the server and
-	allow admin:monit      # require user 'admin' with password 'monit'
-	allow @monit           # allow users of group 'monit' to connect (rw)
-	allow @users readonly  # allow users of group 'users' to connect readonly
+      use address localhost  # only accept connection from localhost
+      allow localhost        # allow localhost to connect to the server and
+      allow ${MONIT_ADMIN}:${SECRET_PASSWORD}      # require user 'admin' with password 'monit'
+      allow @monit           # allow users of group 'monit' to connect (rw)
+      allow @users readonly  # allow users of group 'users' to connect readonly
 
-      check system $HOST   # FIXME!!!!! - insert system name
-        if loadavg (1min) > 4 then alert
-        if loadavg (5min) > 2 then alert
-        if memory usage > 75% then alert
-        if swap usage > 25% then alert
-        if cpu usage (user) > 70% then alert
-        if cpu usage (system) > 30% then alert
-        if cpu usage (wait) > 20% then alert
+      check system ${HOST}   # FIXME!!!!! - insert system name
+      if loadavg (1min) > 4 then alert
+      if loadavg (5min) > 2 then alert
+      if memory usage > 75% then alert
+      if swap usage > 25% then alert
+      if cpu usage (user) > 70% then alert
+      if cpu usage (system) > 30% then alert
+      if cpu usage (wait) > 20% then alert
 
       # check nginx - cobbled from apache check
       check file nginx_bin with path /usr/sbin/nginx
-        if failed md5 checksum and
-           expect the sum 3acd86b57f9116d99cf43d3770fd7d44 then stop
-        if failed permission 755 then stop
-        if failed uid root then stop
-        if failed gid root then stop
-        alert LOCAL_ADMIN_EMAIL on {
-              checksum, permission, uid, gid # , unmonitor
-          } with the mail-format { subject: "nginx failure" }
-        group server
-      
+      if failed md5 checksum and
+         expect the sum `md5sum /usr/sbin/nginx | awk '{print $1}'` then stop
+      if failed permission 755 then stop
+      if failed uid root then stop
+      if failed gid root then stop
+      alert mike@clove.com on {
+            checksum, permission, uid, gid # , unmonitor
+        } with the mail-format { subject: "nginx failure" }
+      group server
+
+
       check process nginx with pidfile /var/run/nginx.pid
-        start program = "/etc/rc.d/nginx start" with timeout 60 seconds
-        stop program  = "/etc/rc.d/nginx stop"
-        if cpu > 60% for 2 cycles then alert
-        if cpu > 80% for 5 cycles then restart
-        if totalmem > 200.0 MB for 5 cycles then restart
-        if children > 250 then restart
-        if loadavg(5min) greater than 10 for 8 cycles then stop
-        if failed host localhost port 80 protocol http
-           and request "/"
-           then restart
+      start program = "/etc/rc.d/nginx start" with timeout 60 seconds
+      stop program  = "/etc/rc.d/nginx stop"
+      if cpu > 60% for 2 cycles then alert
+      if cpu > 80% for 5 cycles then restart
+      if totalmem > 200.0 MB for 5 cycles then restart
+      if children > 250 then restart
+      if loadavg(5min) greater than 10 for 8 cycles then stop
+      if failed host localhost port 80 then restart
       # enable if nginx serves SSL
       #  if failed port 443 type tcpssl protocol http
       #     with timeout 15 seconds
       #     then restart
-        if 3 restarts within 5 cycles then timeout
-        depends on nginx_bin
-        group server
-      
+      if 3 restarts within 5 cycles then timeout
+      depends on nginx_bin
+      group server
+
       # check postgres - cobbled from apache check
       check file postgres_bin with path /usr/bin/postgres
-        if failed md5 checksum and
-           expect the sum 13704b8f314a0aa92e7d03557595f2de then stop
-        if failed permission 755 then stop
-        if failed uid root then stop
-        if failed gid root then stop
-        alert LOCAL_ADMIN_EMAIL on {
-              checksum, permission, uid, gid # , unmonitor
-          } with the mail-format { subject: "nginx failure" }
-        group server
-      
+      if failed md5 checksum and
+         expect the sum `md5sum /usr/bin/postgres | awk '{print $1}'` then stop
+      if failed permission 755 then stop
+      if failed uid root then stop
+      if failed gid root then stop
+      alert mike@clove.com on {
+            checksum, permission, uid, gid # , unmonitor
+        } with the mail-format { subject: "nginx failure" }
+      group server
+
       check process postgres with pidfile /var/lib/postgres/data/postmaster.pid
-        start program = "/etc/rc.d/postgresql start" with timeout 5 seconds # with timeout 60 seconds
-        stop program  = "/etc/rc.d/postgresql stop"
-        if cpu > 60% for 2 cycles then alert
-        if cpu > 80% for 5 cycles then restart
-        if totalmem > 200.0 MB for 5 cycles then restart
-        if children > 250 then restart
-        if loadavg(5min) greater than 10 for 8 cycles then stop
-        if failed host localhost port 5432 type TCP protocol PGSQL
-           then restart
-        if 3 restarts within 5 cycles then timeout
-        depends on postgres_bin
-        group server
-      
-      
+      start program = "/etc/rc.d/postgresql start" with timeout 5 seconds # with timeout 60 seconds
+      stop program  = "/etc/rc.d/postgresql stop"
+      if cpu > 60% for 2 cycles then alert
+      if cpu > 80% for 5 cycles then restart
+      if totalmem > 200.0 MB for 5 cycles then restart
+      if children > 250 then restart
+      if loadavg(5min) greater than 10 for 8 cycles then stop
+      if failed host localhost port 5432 type TCP protocol PGSQL
+         then restart
+      if 3 restarts within 5 cycles then timeout
+      depends on postgres_bin
+      group server
+
+
       # check postfix - cobbled from apache check
       check file postfix_bin with path /usr/sbin/postfix
-        if failed md5 checksum and
-           expect the sum 869b5a36e7f2d553197675fec58c3917 then stop
-        if failed permission 755 then stop
-        if failed uid root then stop
-        if failed gid root then stop
-        alert LOCAL_ADMIN_EMAIL on {
-              checksum, permission, uid, gid # , unmonitor
-          } with the mail-format { subject: "/usr/sbin/postfix modified " }
-        group server
-      
+      if failed md5 checksum and
+         expect the sum `md5sum /usr/sbin/postfix | awk '{print $1}'` then stop
+      if failed permission 755 then stop
+      if failed uid root then stop
+      if failed gid root then stop
+      alert mike@clove.com on {
+            checksum, permission, uid, gid # , unmonitor
+        } with the mail-format { subject: "/usr/sbin/postfix modified " }
+      group server
+
       # check postfix - cobbled from apache check
       check file postmaster_bin with path /usr/bin/postmaster
-        if failed md5 checksum and
-           expect the sum 13704b8f314a0aa92e7d03557595f2de then stop
-        if failed permission 755 then stop
-        if failed uid root then stop
-        if failed gid root then stop
-        alert LOCAL_ADMIN_EMAIL on {
-              checksum, permission, uid, gid # , unmonitor
-          } with the mail-format { subject: "/usr/sbin/postmaster modified " }
-        group server
-      
+      if failed md5 checksum and
+         expect the sum `md5sum /usr/bin/postmaster | awk '{print $1}'` then stop
+      if failed permission 755 then stop
+      if failed uid root then stop
+      if failed gid root then stop
+      alert mike@clove.com on {
+            checksum, permission, uid, gid # , unmonitor
+        } with the mail-format { subject: "/usr/sbin/postmaster modified " }
+      group server
+
       check process postfix with pidfile /var/spool/postfix/pid/master.pid
-        start program = "/etc/rc.d/postfix start" with timeout 5 seconds # with timeout 60 seconds
-        stop program  = "/etc/rc.d/postfix stop"
-        if cpu > 60% for 2 cycles then alert
-        if cpu > 80% for 5 cycles then restart
-        if totalmem > 200.0 MB for 5 cycles then restart
-        if children > 250 then restart
-        if loadavg(5min) greater than 10 for 8 cycles then stop
-        if failed host localhost port 25 type TCP protocol SMTP
-           then restart
-        if 3 restarts within 5 cycles then timeout
-        depends on postfix_bin, postmaster_bin
-        group server
+      start program = "/etc/rc.d/postfix start" with timeout 5 seconds # with timeout 60 seconds
+      stop program  = "/etc/rc.d/postfix stop"
+      if cpu > 60% for 2 cycles then alert
+      if cpu > 80% for 5 cycles then restart
+      if totalmem > 200.0 MB for 5 cycles then restart
+      if children > 250 then restart
+      if loadavg(5min) greater than 10 for 8 cycles then stop
+      if failed host localhost port 25 type TCP protocol SMTP
+         then restart
+      if 3 restarts within 5 cycles then timeout
+      depends on postfix_bin, postmaster_bin
+      group server
 
       # include all site monitrc files
-      include /home/**/monitrc
-      
-      
+      include /home/*/site/monitrc
+      EOF
+    ------------------------end here--------------------------
+
 Access monit via http through an ssh tunnel:
 
     ssh -L 2812:${HOST}:2812 ${ADMIN}@${HOST}
@@ -478,8 +490,6 @@ site's userid must be set up on github.com as a
 
 ## Configure boot
 
-NOTE: we probably don't need to start postgresql and nginx when using monitd
-
 add iptables ip6tables postgresql nginx monitd to DAEMONS
     
     cp /etc/rc.conf /etc/rc.conf-orig
@@ -488,17 +498,3 @@ add iptables ip6tables postgresql nginx monitd to DAEMONS
       }' \
     /etc/rc.conf-orig >/etc/rc.conf
     cat /etc/rc.conf
-    
-## As user '$ADMIN
-
-### install rvm
-
-    bash < <(curl -s https://rvm.beginrescueend.com/install/rvm)
-
-### install ruby 1.9.2
-
-    rvm install 1.9.2
-    (wait)
-    rvm use 1.9.2 --default
-    
-    gem install bundler

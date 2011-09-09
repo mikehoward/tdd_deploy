@@ -15,10 +15,18 @@ code fragments won't necessarily work.
 
 After running 'capify', edit 'config/deploy.rb' and add these lines:
 
-    require 'bundle/capistrano'
+    require 'bundler/capistrano'
     
     set :bundle_cmd, '~/.rvm/bin/rvm exec bundle'
-    
+    set :user, SITE_USER  # this tells Capistrano who to ssh in as
+    set :use_sudo, false  # this will let Capistrano run as your user w/o attempting to use sudo.
+    set :scm, :git   # you are using github.com?
+    set :repository, "git@github.com:...."  # the github readonly path to our repository
+    set :deploy_to, '...'  # set this to the **parent** directory of the path you use for site_app_root.
+    # If you have /home/foo/foobar/current as site_app_root, then set :deploy_to to '/home/foo/foobar'
+
+See [below](#capistrano_ness) for more details.
+
 ## Test Driven Site Setup
 
 The tests/hosts directory contains a bunch of tests which run commands
@@ -52,37 +60,59 @@ web servers [mongrel or thin]. Defaults to 'site'
 as HOST_USER
 
     sudo useradd --comment 'admin for $SITE' --user-group --create-home $SITE_USER
+    sudo chgrp http ~${SITE_USER}
+    sudo chmod 710  ~${SITE_USER}
     sudo mkdir /home/${SITE_USER}/.ssh
     sudo cp -R /home/${HOST_ADMIN}/.ssh/authorized_keys /home/${SITE_USER}/.ssh
     sudo chown -R ${SITE_USER} /home/${SITE_USER}/.ssh
-    sudo chmod -R u-w /home/${SITE_USER}/.ssh
     sudo chmod -R go-rwx /home/${SITE_USER}/.ssh
+    sudo -u ${SITE_USER} ssh-keygen
+    
+when you get done you should see:
+
+    sudo ls -ld ~${SITE_USER}  # should be drwx--x--- and more stuff
+    sudo ls -ld ~${SITE_USER}/.ssh  # should look like drwx------ and more stuff
+    sudo ls -lR ~${SITE_USER}/.ssh  # should look like -rw------- for all listed files
+      (it's OK if id_rsa.pub is -rw-r--r--)
 
 ## Create Postgresql User
 
-    echo 'create user $SITE_USER createdb;' | psql postgres postgres
+    echo "create user $SITE_USER createdb;" | psql postgres postgres
 
     echo "create database $DATABASE with owner $SITE_USER encoding 'utf-8' template template0 ;" | \
         psql postgres postgres
 
 ## as SITE_USER
 
-    chmod 744 .
+    chmod 701 .   # this lets 'other' userid's search your site. 
     mkdir sites
     mkdir $SITE
     sudo chgrp http $SITE sites
-    sudo chmod 750 $SITE sites
+    sudo chmod 755 $SITE sites
     sudo chmod g+s $SITE sites
 
 ### install rvm
 
+    do an `ls -a` and make sure you have a `.bash_profile` and `.bashrc` file.
+
     bash < <(curl -s https://rvm.beginrescueend.com/install/rvm)
+
+    follow the instructions and append the `[[ ....]] && ... ` to your `.bashrc` file
     
-    Note: if rvm fails on 'cannot create /usr/local/bin/rvm', check to see if /etc/rvmrc
-    exists. If it does, it will be sourced by bash and will attempt a global install.
+    log out as site user
+    
+    log back in as SITE_USER and type `rvm`. You see a bunch of stuff. You see something
+    like `rvm not found`, then you have a problem you need to fix. So fix it.
+    
+#### rvm installation problems
+
+if rvm fails on 'cannot create /usr/local/bin/rvm', check to see if /etc/rvmrc
+exists. If it does, it will be sourced by bash and will attempt a global install.
+
+
 
 ### install ruby 1.9.2
-ge
+
     rvm install 1.9.2
     (wait)
     rvm use 1.9.2 --default
@@ -116,4 +146,90 @@ user which owns the app.
 It's fashionable now to set home directory permissions to 0700, which isn't a problem
 for daemons running as root, but it may foul up non-root daemons. So, if everything
 passes all tests, but some daemon is not picking up the configuration, try changing the
-home & site\_special\_dir permissions to 0755. 
+home & site\_special\_dir permissions to 0755.
+
+## Capistrano-ness
+
+Several things need to be set up in the Capistrano deployment file (config/deploy.rb)
+
+Add **require 'bundler/capistrano'** at the top of the file.
+
+* set :user, $SITE\_USER  # this tells Capistrano who to ssh in as
+* set :use\_sudo, false  # this will let Capistrano run as your user w/o attempting to use sudo.
+* set :bundle\_cmd, '~/.rvm/bin/rvm exec bundle'  # this runs the bundler using your local rvm'ed ruby
+* set :scm, :git   # you are using github.com?
+* set :repository, "git@github.com:...."  # the github readonly path to our repository
+* set :deploy\_to, '...'  # set this to the **parent** directory of the path you use for site\_app\_root.
+If you have /home/foo/foobar/current as site\_app\_root, then set :deploy\_to to '/home/foo/foobar'
+
+**Note:** bundler runs fine from the command line, but Capistrano runs commands as a headless
+shell. This means it runs in a different environment than when you run interactively. Specifically,
+it doesn't execute all the nice '.bash...' files do it doesn't know about 'rvm' unless you tell it
+explicitly. This means we have to set the ':bundle\_cmd'.
+
+### setting up github.com so you can deploy to your host
+
+Read the Capistrano Doc
+
+* [Getting Started](https://github.com/capistrano/capistrano/wiki/2.x-Getting-Started)
+* [From the Beginning](https://github.com/capistrano/capistrano/wiki/2.x-From-The-Beginning)
+* [Github: Deploy with Capistrano](http://help.github.com/deploy-with-capistrano/) - This presents
+something different from what follows below. I haven't tried it yet, so YMMV.
+
+You're going to deploying from a private repo on github.com, so read up on Deployment Keys:
+
+* Read the stuff on github.com [Help](http://help.github.com/deploy-keys/)
+* Go to your repo, then click Admin -> Deploy Keys and add two keys: one for your host and one
+for the site account.
+
+Your user may not have a key yet, so log on as your site user and run **ssh-keygen**. This creates
+two keys in ~/.ssh/. Copy-and-paste the public one into a separate deployment key for your site
+user.
+
+SITE_USER will pull down your site from the github.com repository using ssh - which will fail
+the first time because SITE_USER's .ssh/knownhosts doesn't know about github. You fix that
+by attempting `ssh github.com` and answering 'Yes' when ssh asks you whether to trust
+the host or not. Then your login will fail, but github.com is now a known host, so deployment
+will work.
+
+### Start kicking the Capistrano tires
+
+Make sure your site app is checked in on github.com and then start 'deploying'.
+
+Every time you run a 'cap deploy:...' command, actually READ the messages. If you see the
+word 'fail' then it didn't work and Capistrano 'rolled back'. This is a good thing, but it means
+you need to fix something.
+
+* cap deploy:setup # this sets up your host with the 'right' directory structure.
+* cap deploy:check # this will check your deployment for sanity, but it still may not work
+* cap deploy:update # this actually copies your code to your host and runs bundler on Gemfile.
+If anything isn't set up right - deployment keys or bundler executable or Gemfile - it will fail
+and roll everything back.
+* run the Configurator and install Site Specials and Site Config using **tdd\_deploy**. Once
+Capistrano has the directories set up, you can install the nginx.conf, monitrc, etc files.
+
+## Future Deployments
+
+You will deploy using `cap deploy`.
+
+**NOTE:** if you don't copy the stuff in lib/tdd\_deploy/app\_hosts/config to the `config` directory
+and include them in you git repository, you will need to _reinstall_ them every time
+you do a deployment. But then, if you do and you change something, you'll need to - well, figure
+it out.
+
+## After First Deployment
+
+You may need to run rake db:migrate by hand:
+
+    cd ~${SITE_USER}/${SITE}/current
+    
+    bundle exec rake RAILS_ENV=production db:migrate
+
+## Things which can go wrong
+
+* nginx gets permission error accessing static assets (css files, images, javascript): check
+the permission on SITE\_USER home directory (and all the directories all the way down). All
+the directories must be serachable (the right most permission bit [as in 701]) and the file
+must be readable by the nginx user. If you have set your home directory group to 'http' (the
+nginx user on Arch linux), then your home group permissions should be 710. If not, then
+use 701 (full access to SITE\_USER, nothing on group, and search for 'other')

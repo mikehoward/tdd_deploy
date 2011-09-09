@@ -79,6 +79,10 @@ end
 	    font-weight: normal;
 	    background: #800000;
 	  }
+	  .orange { background: #ff8000;}
+
+	  smaller { font-size: small;}
+	  bold { font-weight: bold;}
 	</style>
 	<!-- Date: 2011-08-20 -->
 </head>
@@ -130,10 +134,20 @@ end
 
     <h3>Capistrano Variables</h3>
     <% if server_obj.app_hosts.sort != (server_obj.app + server_obj.migration_hosts).uniq.sort %>
-    <p><span class="warn">Warning: 'app_hosts' does not match Capistrano 'app' and 'migration_hosts'</span></p>
+    <p>
+      <span class="warn">Warning: 'app_hosts' does not match Capistrano 'app' and 'migration_hosts'</span>
+    </p>
+    <p>
+      <span class="orange smaller bold">(make sure the capistrano hosts are an array, not a single string in an array)</span>
+    </p>
     <% end %>
     <% if server_obj.db_hosts.uniq.sort != server_obj.db.uniq.sort %>
-    <p><span class="warn">Warning: 'db_hosts' does not match Capistrano 'db'</span></p>
+    <p>
+      <span class="warn">Warning: 'db_hosts' does not match Capistrano 'db'</span>
+    </p>
+    <p>
+      <span class="orange smaller bold">(make sure the capistrano hosts are an array, not a single string in an array)</span>
+    </p>
     <% end %>
     <table>
       <% reset_even_odd %>
