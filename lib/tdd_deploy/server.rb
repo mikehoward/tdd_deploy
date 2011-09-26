@@ -14,11 +14,13 @@ module TddDeploy
   # It only displays one page - which is defined in the gem in
   # lib/tdd_deploy/server-templates/test_results.html.erb.
   class Server < TddDeploy::Base
-    LIB_DIR = File.expand_path('../..', __FILE__)
-    HOST_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'host_tests')
-    SITE_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'site_tests')
-    LOCAL_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'local_tests')
-    TEMPLATE_PATH = File.join(LIB_DIR, 'tdd_deploy', 'server-templates', 'test_results.html.erb')
+    unless defined? LIB_DIR
+      LIB_DIR = File.expand_path('../..', __FILE__)
+      HOST_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'host_tests')
+      SITE_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'site_tests')
+      LOCAL_TESTS_DIR = File.join(Dir.pwd, 'lib', 'tdd_deploy', 'local_tests')
+      TEMPLATE_PATH = File.join(LIB_DIR, 'tdd_deploy', 'server-templates', 'test_results.html.erb')
+    end
 
     attr_accessor :test_classes, :query_hash
   
