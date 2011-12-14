@@ -186,11 +186,12 @@ Your user may not have a key yet, so log on as your site user and run **ssh-keyg
 two keys in ~/.ssh/. Copy-and-paste the public one into a separate deployment key for your site
 user.
 
-SITE_USER will pull down your site from the github.com repository using ssh - which will fail
-the first time because SITE_USER's .ssh/knownhosts doesn't know about github. You fix that
-by attempting `ssh github.com` and answering 'Yes' when ssh asks you whether to trust
+**The first time it Won't work because github.com is not in ~$SITE\_USER/.ssh/known\_hosts**
+You fix that by attempting `ssh github.com` and answering 'Yes' when ssh asks you whether to trust
 the host or not. Then your login will fail, but github.com is now a known host, so deployment
 will work.
+
+SITE_USER will now be able to pull down your site from the github.com repository using ssh. 
 
 ### Start kicking the Capistrano tires
 
