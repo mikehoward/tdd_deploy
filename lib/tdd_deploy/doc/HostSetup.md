@@ -377,6 +377,11 @@ Check over the output and modify the script as needed.
       if children > 250 then restart
       if loadavg(5min) greater than 10 for 8 cycles then stop
       if failed host localhost port 80 then restart
+      # if you want to, you can use:
+      #        if failed host localhost port 80 protocol http and request "/" then restart
+      # but if you do and you have basic authentication enabled, it won't work. The recommended
+      # test is a simple 'are you there?' test, which is the default
+      
       # enable if nginx serves SSL
       #  if failed port 443 type tcpssl protocol http
       #     with timeout 15 seconds

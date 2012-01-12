@@ -1,7 +1,7 @@
 #
 # web_host config fragment for <%= site %>
 #
-upstream <%= site %> {
+upstream <%= site_url %> {
   # backend servers
 <% ((site_base_port)...(site_base_port+site_num_servers)).each do |port| %>
   server 127.0.0.1:<%= port %>;
@@ -37,7 +37,7 @@ server {
      proxy_read_timeout	90;
      proxy_buffers		32 4k;
      
-     proxy_pass http://<%= site %>;
+     proxy_pass http://<%= site_url %>;
    }
    
    error_page  500 502 503 504 /500.html;

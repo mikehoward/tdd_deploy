@@ -57,11 +57,20 @@ web servers [mongrel or thin]. Defaults to 'site'
 
 ## Create Account
 
+NOTE: there is some funky shell eval stuff in this 'copy and paste' code.
+Turns out (on arch linux, at least) the shell the ~${SITE_USER} construction
+causes the command to fail unless it is wrapped as a string which is eval'ed
+in the context of the sudo user. This is a permission issue: the shell attempts
+to access the ~${SITE_USER} directory in the context of the normal user prior
+to building the command to pass to sudo, so the entire command fails.
+
+Seems a little overprotective, but that's UNIX-ness.
+
 as HOST_USER
 
     sudo useradd --comment 'admin for $SITE' --user-group --create-home $SITE_USER
-    sudo chgrp http ~${SITE_USER}
-    sudo chmod 710  ~${SITE_USER}
+    sudo /bin/sh -c "eval 'chgrp http ~${SITE_USER}'"
+    sudo /bin/sh -c "eval 'chmod 710  ~${SITE_USER}'"
     sudo mkdir /home/${SITE_USER}/.ssh
     sudo cp -R /home/${HOST_ADMIN}/.ssh/authorized_keys /home/${SITE_USER}/.ssh
     sudo chown -R ${SITE_USER} /home/${SITE_USER}/.ssh
@@ -70,10 +79,17 @@ as HOST_USER
     
 when you get done you should see:
 
-    sudo ls -ld ~${SITE_USER}  # should be drwx--x--- and more stuff
-    sudo ls -ld ~${SITE_USER}/.ssh  # should look like drwx------ and more stuff
-    sudo ls -lR ~${SITE_USER}/.ssh  # should look like -rw------- for all listed files
+    sudo /bin/sh -c "eval 'ls -ld ~${SITE_USER}'"  # should be drwx--x--- and more stuff
+    sudo /bin/sh -c "eval 'ls -ld ~${SITE_USER}/.ssh'"  # should look like drwx------ and more stuff
+    sudo /bin/sh -c "eval 'ls -lR ~${SITE_USER}/.ssh'"  # should look like -rw------- for all listed files
       (it's OK if id_rsa.pub is -rw-r--r--)
+
+    sudo /bin/sh -c "eval 'mkdir ~${SITE_USER}/site'"
+    sudo /bin/sh -c "eval 'mkdir ~${SITE_USER}/$SITE'"
+    sudo /bin/sh -c "eval 'chgrp http ~${SITE_USER}/$SITE ~${SITE_USER}/site'"
+    sudo /bin/sh -c "eval 'chmod 755 ~${SITE_USER}/$SITE ~${SITE_USER}/site'"
+    sudo /bin/sh -c "eval 'chmod g+x ~${SITE_USER}/$SITE ~${SITE_USER}/site'"
+  
 
 ## Create Postgresql User
 
@@ -82,14 +98,22 @@ when you get done you should see:
     echo "create database $DATABASE with owner $SITE_USER encoding 'utf-8' template template0 ;" | \
         psql postgres postgres
 
+    Semi-Optional. Set your user's password by:
+    
+    echo "alter user $SITE_USER with encrypted password '$PASSWORD';" | psql postgres postgres
+
 ## as SITE_USER
 
-    chmod 701 .   # this lets 'other' userid's search your site. 
-    mkdir sites
-    mkdir $SITE
-    sudo chgrp http $SITE sites
-    sudo chmod 755 $SITE sites
-    sudo chmod g+s $SITE sites
+    chmod 710 .   # this lets 'http' group members search your site. 
+    echo "export RAILS_ENV=production" >> .bashrc
+    export SITE=whatever your site is (see above)
+    echo "export SITE=$SITE" >> .bashrc
+
+    then either
+
+    . .bashrc
+    
+    or log out and log back in
 
 ### install rvm
 
@@ -119,7 +143,7 @@ exists. If it does, it will be sourced by bash and will attempt a global install
     
 ### install bundler
 
-    gem install bundler
+    gem install bundler --no-rdoc --no-ri
     
 ### install and configure configuration fragments
 
@@ -230,7 +254,7 @@ You may need to run rake db:migrate by hand:
 
 * nginx gets permission error accessing static assets (css files, images, javascript): check
 the permission on SITE\_USER home directory (and all the directories all the way down). All
-the directories must be serachable (the right most permission bit [as in 701]) and the file
+the directories must be serachable (the permission bits set to 710) and the file
 must be readable by the nginx user. If you have set your home directory group to 'http' (the
 nginx user on Arch linux), then your home group permissions should be 710. If not, then
 use 701 (full access to SITE\_USER, nothing on group, and search for 'other')

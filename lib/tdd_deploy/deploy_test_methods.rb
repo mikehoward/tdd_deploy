@@ -58,13 +58,13 @@ module TddDeploy
       raise ArgumentError, 'match expression cannot be empty' if match =~ ''
 
       rsp, err_rsp, cmd = run_on_a_host_as(userid, host, &block)
-      prefix = "user@host: #{userid}@#{host}: #{success_msg}"
+      prefix = "user@host: #{userid}@#{host}:\n --- #{success_msg}"
 
       if err_rsp
-        return fail host, "#{prefix}: command generated error data:\n" +
+        return fail host, "#{prefix}:\n --- command generated error data:\n" +
           "  command: #{cmd}\n stdout: '#{rsp}'\n stderr: '#{err_rsp}'"
       elsif rsp.nil?
-        return fail host, "#{prefix}: stdout is empty for command '#{cmd}'"
+        return fail host, "#{prefix}:\n --- stdout is empty for command '#{cmd}'"
       else
         return assert_match host, match, rsp, prefix
       end
