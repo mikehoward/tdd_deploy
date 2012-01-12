@@ -211,7 +211,9 @@ end
       <% result, success_msg = msg %>
       <% test_result_index += 1 %>
       <li id="test-result-detail-<%= test_result_index %>" class="<%= even_odd %> <%= result ? 'test-result-detail-success' : 'test-result-detail-failure' %>">
+<pre>
         <%= success_msg %>
+</pre>
       </li>
       <% end %>
     </ul>

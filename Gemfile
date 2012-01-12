@@ -10,3 +10,5 @@ gem 'net-ping'
 
 # gem 'rack', "~> 1.2.1"
 gem 'rack'
+
+gem 'pry'

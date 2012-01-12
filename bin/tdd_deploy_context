@@ -19,10 +19,23 @@ class TddDeployEnv
 
   def show_env
     puts "============================================="
-    self.env_types.keys.sort.each do |k|
+    self.env_types.keys.select { |k| ![:pseudo, :capfile].include? env_types[k] }.sort.each do |k|
       v = self.send(k.to_sym)
       printf "%-20s: %s\n", k, v
     end
+    
+    puts "\nPseudo Keys: (assignable ONLY if all hosts are the same)"
+    self.env_types.keys.sort.select { |k| env_types[k] == :pseudo }.each do |k|
+      v = self.send(k.to_sym)
+      printf "%-20s: %s\n", k, v
+    end
+    
+    puts "\nCap File Keys: (read only)"
+    self.env_types.keys.sort.select { |k| env_types[k] == :capfile }.each do |k|
+      v = self.send(k.to_sym)
+      printf "%-20s: %s\n", k, v
+    end
+
     if (self.web_hosts.nil? && self.db_hosts.nil?) || self.web_hosts == self.db_hosts
       printf "\n\nSpecial Key\n%-20s: %s\n", 'hosts', self.hosts, "set 'hosts' to set both web & db hosts"
     end

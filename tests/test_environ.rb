@@ -40,8 +40,8 @@ class TestEnvironTestCase < Test::Unit::TestCase
     @foo.clear_env
     system('TMP=/tmp/t-$$; trap "rm $TMP; exit" 0 1 2 3 15 ;cp site_host_setup.env $TMP ; sed -e 1d $TMP >site_host_setup.env')
     @foo.read_env
-    non_pseudo_keys = @foo.env_types.reject {|k,t| t == :pseudo }.keys.sort
-    assert_equal non_pseudo_keys, @foo.env_hash.keys.sort, "read_env should set all keys"
+    non_pseudo_or_capfile_keys = @foo.env_types.reject {|k,t| t == :pseudo || t == :capfile}.keys.sort
+    assert_equal non_pseudo_or_capfile_keys, @foo.env_hash.keys.sort, "read_env should set all non-pseudo and non-capfile keys"
   end
   
   def test_response_to_accessors
@@ -161,11 +161,13 @@ class TestEnvironTestCase < Test::Unit::TestCase
       case @foo.env_types[k]
       when :int then expect = 0
       when :string then expect = ''
-      when :list then expect = []
+      when :list then expect = (k == 'capfile_paths' ? [@foo.env_defaults['capfile_paths']] : [])
+      when :capfile then next
       when :pseudo then next
       end
-      assert_equal expect, @foo.env_hash[k], "After Zapping, env_hash['#{k}'] should be #{expect}"
-      assert_equal expect, @foo.send(k.to_sym), "After Zapping, @foo.#{k} should be #{expect}"
+      # order is important here - the accessors 'do things' which manipulate the hash
+      assert_equal expect, @foo.send(k.to_sym), "After Zapping, @foo.#{k} should be #{expect.inspect}"
+      assert_equal expect, @foo.env_hash[k], "After Zapping, env_hash['#{k}'] should be #{expect.inspect}"
     end
   end
 

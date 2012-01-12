@@ -1,7 +1,7 @@
 #
 # balance_host config fragment for <%= site %>
 #
-upstream <%= site %> {
+upstream <%= site_url %> {
 <% web_hosts.each do |host| %>
   server <%= host %>;
 <% end %>
@@ -22,6 +22,6 @@ server {
      proxy_read_timeout	90;
      proxy_buffers		32 4k;
 
-     proxy_pass http://<%= site %>;
+     proxy_pass http://<%= site_url %>;
    }
 }

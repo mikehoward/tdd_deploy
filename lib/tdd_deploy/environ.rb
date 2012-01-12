@@ -50,8 +50,10 @@ module TddDeploy
     #
     # === Pseudo Variables
     # * 'hosts' - list of all hosts - always returns app_hosts + balance_hosts + db_hosts + web_hosts.
-    #may be assigned to if all three host lists are identical, otherwise raises an exception.
+    # may be assigned to if all three host lists are identical, otherwise raises an exception.
     #'tdd_deploy_context' hides it from view unless it can be assigned
+    #
+    # === Capfile Variables - Read Only
     # * 'app' - list of all hosts in the :app role of the Capistrano recipes
     # * 'db' - list of all hosts in the :db role of the Capistrano recipes
     # * 'migration_hosts' - list of all hosts in the :db role with option :primary => true
@@ -126,10 +128,11 @@ module TddDeploy
       'web_hosts' => :list,
       
       'hosts' => :pseudo,
-      'app' => :pseudo,
-      'db' => :pseudo,
-      'migration_hosts'  => :pseudo,
-      'web' => :pseudo,
+      
+      'app' => :capfile,
+      'db' => :capfile,
+      'migration_hosts'  => :capfile,
+      'web' => :capfile,
     }
 
     DataCache.env_desc = {
@@ -155,10 +158,11 @@ module TddDeploy
       'db_hosts' => 'list of hosts running database servers',
       'web_hosts' => 'list of hosts running real web servers - Apache or Nginx or ...',
       
-      'hosts' => 'uniquified sum of app_hosts, balance_hosts, db_hosts, and web_hosts',
+      'hosts' => 'unqualified sum of app_hosts, balance_hosts, db_hosts, and web_hosts',
+      
       'app' => 'list of servers in the Capistrano :app role',
       'db' => 'list of servers in the Capistrano :db role',
-      'migration_hosts'  => 'list of servers in the Capistrano :db role with :primary => truen',
+      'migration_hosts'  => 'list of servers in the Capistrano :db role with :primary => true',
       'web' => 'list of servers in the Capistrano :web role',
     }
     
@@ -212,6 +216,7 @@ module TddDeploy
         when :int then DataCache.env_hash[k] = v.to_i
         when :string then DataCache.env_hash[k] = v.to_s
         when :list then DataCache.env_hash[k] = self.str_to_list(v)
+        when :capfile then next
         when :pseudo then
           if k == 'hosts'
             if (tmp = DataCache.env_hash['web_hosts']) == DataCache.env_hash['db_hosts'] \
@@ -277,6 +282,7 @@ module TddDeploy
             (self.env_types.keys - self.env_hash.keys).each do |key|
               case self.env_types[key]
               when :pseudo then next
+              when :capfile then next
               when :list
                 self.env_hash[key] = str_to_list(self.env_defaults[key])
               else
@@ -327,6 +333,7 @@ module TddDeploy
         when :list then
           f.write "#{k}=#{self.list_to_str(k)}\n" unless k == 'hosts'
         when :pseudo then next
+        when :capfile then next
         else
           raise ::RuntimeError.new("unknown key: #{k}")
         end
@@ -341,7 +348,12 @@ module TddDeploy
       
       tmp +=<<-EOF
       def #{k}
-        self.env_hash['#{k}']
+        if '#{k}' == 'capfile_paths' && (self.env_hash['capfile_paths'].nil? || self.env_hash['capfile_paths'] == [])
+          DataCache.capfile = nil
+          self.env_hash['capfile_paths'] = self.str_to_list self.env_defaults['capfile_paths']
+        else
+          self.env_hash['#{k}']
+        end
       end
       EOF
       case DataCache.env_types[k]
@@ -361,20 +373,23 @@ module TddDeploy
         tmp +=<<-EOF
         def #{k}=(v)
          self.env_hash['#{k}'] = self.str_to_list(v)
-         DataCache.capfile = nil if '#{k}' == 'capfile_paths'
+         if '#{k}' == 'capfile_paths'
+           DataCache.capfile = nil
+           self.env_hash['capfile_paths'] = self.env_defaults['capfile_paths'] if v.nil?
+         end
         end
         EOF
+      when :capfile
+        tmp +=<<-EOF
+        def #{k}
+          self.capfile.role_to_host_list :#{k}
+        end
+        EOF
+      else
+        raise Exception.new("Internal Error: key #{k} has invalid type: #{t}")
       end
     end
     
-    ['app', 'db', 'web'].each do |k|
-      tmp +=<<-EOF
-      def #{k}
-        self.capfile.role_to_host_list :#{k}
-      end
-      EOF
-    end
-
     class_eval tmp
 
     # accessors for all defined env variables

@@ -8,7 +8,7 @@ task :default => :test
 
 desc "Run Unit Tests"
 task :test do
-  autotest
+  system 'bundle exec autotest'
 end
 
 desc "Create Gem"
